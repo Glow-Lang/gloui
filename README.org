@@ -1,0 +1,21 @@
+#+TITLE: GloUI (gloui)
+
+A User Interface for Glow dapps on Blockchains
+
+*  Install the dependencies
+#+begin_src shell
+yarn
+#+end_src
+* Start the app in development mode (hot-code reloading, error reporting, etc.)
+#+begin_src shell
+quasar dev
+#+end_src
+
+* Build the app for production
+#+begin_src shell
+quasar build
+#+end_src
+
+* Customize the configuration
+
+See [[Configuring quasar.conf.js]].
