@@ -1,0 +1,247 @@
+#+TITLE: GloUI, Getting Started
+
+GloUI is a good name! From there, where to go?
+
+
+* First, make all ~npm~ packages work.
+
+For this we need, in this order:
+
+  1) [ ] gxjs-loader
+  2) [ ] gambit-scheme
+  3) [ ] gerbil-scheme
+  4) [ ] gxjs
+
+* Now, make a package and install quasar
+
+#+begin_src shell
+cd ~/me/MuKn/src/gloui
+yarn init
+yarn global add @quasar/cli
+export LD=$CC yarn install
+LD=$CC quasar create
+
+
+#   ___
+#  / _ \ _   _  __ _ ___  __ _ _ __
+# | | | | | | |/ _` / __|/ _` | '__|
+# | |_| | |_| | (_| \__ \ (_| | |
+#  \__\_\\__,_|\__,_|___/\__,_|_|
+
+
+
+# ? Generate project in current directory? Yes
+# ? Project name (internal usage for dev) gloui
+# ? Project product name (must start with letter if building mobile apps) GloUI
+# ? Project description A User Interface for Glow dapps on Blockchains
+# ? Author Drew Crampsie <me@drewc.ca>
+# ? Pick your favorite CSS preprocessor: (can be changed later) None
+# ? Pick a Quasar components & directives import strategy: (can be changed later) Auto import
+# ? Check the features needed for your project: ESLint (recommended), Vuex, Axios
+# ? Pick an ESLint preset: Standard
+# ? Continue to install project dependencies after the project has been created? (recommended) yarn
+
+#   Quasar CLI · Generated "gloui".
+
+#+end_src
+
+#+RESULTS:
+
+* HTML Layout
+#+ATTR_ORG: :width 1000
+[[../img/Deploy.png]]
+
+
+* Task Description
+
+   1) Create drop down menu to select FROM address from addresses in address book that:
+      a) Are registered as having the private key on file or in a linked wallet.
+      b) Have tags have matching the current context.
+      c) modify the context with regard to tags they are allowed to interact with.
+
+   2) [ ]
+
+
+
+
+
+* ~MuKn-glow~ *npm* package
+
+
+Task description 1 has an Address Book. Time to use our GxJS.
+
+   1) Create drop down menu to select FROM address from addresses in address book that:
+      a) Are registered as having the private key on file or in a linked wallet.
+
+         #+begin_src scheme :noweb-ref get-FROM-address-book
+(def (get-FROM-address-book pkey)
+  [
+     { name: "Alice Eat Me"
+       hash: (random-hash)
+       tags: ["foo" "bar" "rps"]
+       private-key: "THISISPRIVATE" }
+     { name: "Alice Drink Me"
+       hash: (random-hash)
+       tags: ["baz" "rps" "moonshine"]
+       private-key: "THISISPRIVATE" }
+     { name: "Bob"
+       hash: (random-hash)
+       tags: ["foo" "rps"] }
+     { name: "Charlie Noble"
+       hash: (random-hash)
+       tags: ["bar"] }
+     ]
+
+  )
+         #+end_src
+
+      b) Have tags have matching the current context.
+
+         #+begin_src javascript :noweb-ref has-tags
+((book, tags) => {
+  function hasTag(address, tag) {
+    console.log('Has tag?', address, tag)
+    return address.tags.find(t => t === tag) }
+  console.log('b', book, 't', tags)
+  function hasAllTags(add) {
+    let address = RTS.scm2host(add);
+    for (const tag of tags) {
+      if (!hasTag(address, tag)) { return false };
+    }
+    return true;
+  }
+
+  return book.filter(address => hasAllTags(address))
+})((@1@), RTS.scm2host(@2@));
+         #+end_src
+
+         #+begin_src scheme :noweb-ref filter-book-using-tags :noweb yes
+(def (filter-book-using-tags book tags)
+  (js#expression #<<EOF
+ <<has-tags>>
+EOF
+book tags
+))
+         #+end_src
+
+
+    2) Create drop down menu to Select TO address from addresses in address book that:
+        a) Has tags have matching the current context;
+        b) modifies the context with regard to tags they are allowed to interact with.
+        c) Create an option for copy/pasting an address, and/or for adding it to the address book?
+
+            #+begin_src scheme :noweb-ref get-TO-address-book
+(def (get-TO-address-book)
+  [
+   { name: "Xavier "
+     hash: (random-hash)
+     tags: ["foo" "bar" "rps"] }
+   { name: "Wyclef Jean"
+     hash: (random-hash)
+     tags: ["baz" "moonshine"] }
+   { name: "Jimi Hendrix"
+     hash: (random-hash)
+     tags: ["foo" "rps"]}
+   { name: "Yvonne Brown"
+     hash: (random-hash)
+     tags: ["bar" "foo" "baz"] }
+   ]
+ )
+           #+end_src
+
+     3) Create a drop down menu for asset to be transferred that has the following features:
+        a) Amount box: lets you specify the amount of the asset (if it's an NFT, that's 0 or 1).
+        b) Option to send "all at address" (minus fees below).
+        c) Asset class may default to the "native token" for the current network.
+        d) Displays the equivalent value in the user's unit of tax accounting (e.g. USD, CAD).
+
+    4) Information only: fees and totals in both units, in thinner/greyer font
+        a) Display the expected associated fees and rates in all relevant units (e.g. GAS + ETH/GAS + ETH + USD).
+        b) Display the total in the relevant units (e.g. ETH + USD).
+        c) Have tags have match the current context.
+
+    #+begin_src scheme :noweb-ref fees-and-totals
+(def (fees-and-totals amount unit blockchain)
+  {fee: 0.42 total: (* amount 3.14) })
+    #+end_src
+
+#+begin_src scheme :tangle ../../src/assets/addressBook.ss :noweb yes
+(import :js)
+;; (js#declaration "console.log('Loaded Address Book')")
+
+(def (random-hash) (js#expression "'Ox' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);"))
+
+
+<<get-FROM-address-book>>
+<<get-TO-address-book>>
+
+
+<<filter-book-using-tags>>
+<<fees-and-totals>>
+
+
+(def (add-labels book)
+  (js#statement "((ab) => {
+return ab.map(a => {
+  if (a.label === undefined) {
+   a.label = a.name + ' ' + a.hash
+  }
+  return a
+ })
+})(RTS.scm2host(@1@));" book)
+  book)
+
+
+
+
+;; (js#declaration "let findAddress = undefined")
+;; (def (find-address name: (n #f) hash: (h #f) tags: (ts #f) pkey: (pkey #f))
+
+
+;;   (def ab (ensure-address-book))
+;;   (def dresses [])
+
+;;   (js#statement "console.log('Find Address in', (@1@)" ab))
+
+;; (js#statement "findAddress = (name, opts) => {
+
+;; }")
+
+(js#declaration "
+
+
+function findAddressesByName (name, ab) {
+  const needle = name.toLowerCase()
+  const newAdds = ab.filter( a => {
+     n = a.name.toLowerCase() ; return n.startsWith(needle)
+  });
+ return newAdds;
+};")
+
+(js#statement
+ "
+let getFromAddressBook = (@2@);
+let getToAddressBook = (@3@);
+let filterBookUsingTags = (@4@);
+let feesAndTotals = (@5@)
+module.exports = {
+  findAddressesByName,
+  getFromAddressBook,
+  getToAddressBook,
+  filterBookUsingTags,
+  feesAndTotals
+}"
+ #f
+ (js#scm->js (lambda (pk) (add-labels (get-FROM-address-book pk))))
+ (js#scm->js (lambda () (add-labels (get-TO-address-book))))
+ (js#scm->js filter-book-using-tags)
+ (js#scm->js fees-and-totals)
+
+ )
+#+end_src
+
+This should now work as ~import addressBook from '~assets/addressBook.ss'~
+
+But it doesn't lol. It seems that Quasar uses webpack v4 and this.getOptions is for v5.
+
+Can fix! https://github.com/webpack/loader-utils#getoptions
