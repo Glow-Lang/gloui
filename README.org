@@ -1,21 +1,41 @@
 #+TITLE: GloUI (gloui)
 
-A User Interface for Glow dapps on Blockchains
+A User Interface for Glow dapps on Blockchain Networks.
 
-*  Install the dependencies
+* Installation
+
+First, [[https://gitlab.com/mukn/glow/-/blob/master/INSTALL.md#installing-glow][Install Glow]]. You currently also need a working [[https://cons.io/][Gerbil]] scheme
+installation.
+
+Then install the gerbil package.
+
+#+begin_src shell
+gxpkg install github.com/drewc/gloui
+#+end_src
+
+Now run the server.
+
+#+begin_src shell
+gxi -e "(import :gloui/server)" -e '(start-server!)' -e '(display "started GloUI Server")' -
+#+end_src
+
+
+
+* Development
+**  Install the dependencies
 #+begin_src shell
 yarn
 #+end_src
-* Start the app in development mode (hot-code reloading, error reporting, etc.)
+** Start the app in development mode (hot-code reloading, error reporting, etc.)
 #+begin_src shell
 quasar dev
 #+end_src
 
-* Build the app for production
+** Build the app for production
 #+begin_src shell
 quasar build
 #+end_src
 
-* Customize the configuration
+** Customize the configuration
 
 See [[Configuring quasar.conf.js]].

@@ -468,7 +468,7 @@ yarn add axios
 (def coinlayer-instance
   (js#js->foreign
    (js#expr "axios.create({
-   baseURL: 'http://api.coinlayer.com/',
+   baseURL: 'https://api.coinlayer.com/',
    timeout: 10000,
    params: { access_key: (@1@) }})"
             (js#scm->js coinlayer-key))))
@@ -845,6 +845,7 @@ The Input widget needs the following from the API.
               )
 #+end_src
 
+* Address Book : ARCHIVE ME
 #+begin_src scheme :tangle ../../src/assets/addressBook.ss :noweb yes
 (import :js)
 ;; (js#declaration "console.log('Loaded Address Book')")
@@ -926,3 +927,36 @@ This should now work as ~import addressBook from '~assets/addressBook.ss'~
 But it doesn't lol. It seems that Quasar uses webpack v4 and this.getOptions is for v5.
 
 Can fix! https://github.com/webpack/loader-utils#getoptions
+
+* Deploy
+
+First, build it as an SPA and test her out!
+
+#+begin_src shell
+quasar build
+cd dist/spa/
+quasar serve
+#+end_src
+
+Now create a branch as an orphan. We'll use ~gh-pages~ as that's what github uses sometimes for certain things.
+
+#+begin_src shell
+git checkout --orphan gh-pages
+git rm -rf .
+# rm 'LICENSE'
+# rm 'doc/log/0000_Getting-Started.org'
+rsync -av dist/spa/ .
+git add css/ fonts/ js/ index.html
+git commit -m "First attempt at gh-pages"
+git push origin gh-pages
+#+end_src
+
+** Github pages repo
+
+This is basically because I have yet to use gitlab pages and cannot make it work in the small amout on time
+
+#+begin_src shell
+git remote add github git@github.com:drewc/gloui.git
+git push github master:main
+git push github gh-pages
+#+end_src

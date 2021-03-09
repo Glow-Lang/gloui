@@ -287,7 +287,7 @@ book tags
 (def coinlayer-instance
   (js#js->foreign
    (js#expr "axios.create({
-   baseURL: 'http://api.coinlayer.com/',
+   baseURL: 'https://api.coinlayer.com/',
    timeout: 10000,
    params: { access_key: (@1@) }})"
             (js#scm->js coinlayer-key))))
