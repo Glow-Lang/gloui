@@ -19,7 +19,8 @@ Now run the server.
 gxi -e "(import :gloui/server)" -e '(start-server!)' -e '(display "started GloUI Server")' -
 #+end_src
 
-
+With the server running, head over to https://drewc.github.io/gloui/ and wait 30
+seconds or so for it to load. Done!
 
 * Development
 **  Install the dependencies

@@ -960,3 +960,23 @@ git remote add github git@github.com:drewc/gloui.git
 git push github master:main
 git push github gh-pages
 #+end_src
+
+** Fix the bug
+
+
+#+begin_src shell
+git checkout gh-pages
+git rm -rf .
+
+rsync -av dist/spa/ .
+git add css/ fonts/ js/ index.html
+
+git commit -m "Fix Coinlayer HTTPS"
+git push origin gh-pages
+
+git add css/ fonts/ js/ img/ icons/ favicon.ico index.html
+git commit -m "Add img/ and favicon"
+
+git push github gh-pages
+git checkout master
+#+end_src
