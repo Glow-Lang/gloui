@@ -45,11 +45,11 @@
   (js#expression #<<EOF
  ((book, tags) => {
    function hasTag(address, tag) {
-     console.log('Has tag?', address, tag)
+     // console.log('Has tag?', address, tag)
      return address.tags.find(t => t === tag) }
-   console.log('b', book, 't', tags)
+   // console.log('b', book, 't', tags)
    function hasAllTags(add) {
-     let address = RTS.scm2host(add);
+     let address = add instanceof RTS.Foreign ? RTS.scm2host(add) : add;
      for (const tag of tags) {
        if (!hasTag(address, tag)) { return false };
      }
@@ -63,6 +63,7 @@ book tags
 ))
 (def (fees-and-totals amount unit blockchain)
   {fee: 0.42 total: (* amount 3.14) })
+
 
 
 (def (add-labels book)
