@@ -329,7 +329,7 @@ book tags
   (js#js->foreign
    (js#expr "axios.create({
    baseURL: (@1@),
-   timeout: 10000
+   timeout: 100000
 });
 " (js#scm->js url))))
 

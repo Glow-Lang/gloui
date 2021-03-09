@@ -73,8 +73,8 @@
 
 (def (random-tags)
   (def tags  [["foo" "bar" "send" "rps"]
-              ["bar" "moonshine" "send" "rps"]
-              ["foo" "moonsine" "rps"]])
+              ["bar" "moonshine" "send"]
+              ["foo" "moonshine" "rps"]])
   (list-ref tags (random-integer (length tags))))
 
 (def (glow-find-identities)
@@ -194,7 +194,7 @@
          (amount (hash-get transfer 'amount))
          (net (hash-get transfer 'network))
          (cmd
-          ["glow"
+          ["glow" "transfer"
            "--to" (hash-get to 'name)
            "--from" (hash-get from 'name)
            "--value" amount
@@ -208,4 +208,4 @@
 (def (process/POST)
   (let* ((proc (http-request-body-json*))
          (uuid (hash-get proc 'uuid)))
-    (respond/json json<-process-properties uuid)))
+    (respond/json (json<-process-properties uuid))))

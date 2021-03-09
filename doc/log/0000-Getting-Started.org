@@ -510,7 +510,7 @@ yarn add axios
   (js#js->foreign
    (js#expr "axios.create({
    baseURL: (@1@),
-   timeout: 10000
+   timeout: 100000
 });
 " (js#scm->js url))))
 
@@ -658,8 +658,8 @@ Eventually we need to call the glow. For now, mockup.
 
 (def (random-tags)
   (def tags  [["foo" "bar" "send" "rps"]
-              ["bar" "moonshine" "send" "rps"]
-              ["foo" "moonsine" "rps"]])
+              ["bar" "moonshine" "send"]
+              ["foo" "moonshine" "rps"]])
   (list-ref tags (random-integer (length tags))))
 
 (def (glow-find-identities)

@@ -1,7 +1,11 @@
 <template>
 <q-page class="flex">
   <div style="width: 100%">
-
+    <div v-show="error" class="text-negative">
+      {{ error }}
+      <q-btn  label="Dismiss" @click="error = !error"/>
+      <q-btn  label="Reload" @click="reloadPage()"/>
+    </div>
     <q-splitter
       v-model="splitterModel"
       class='bg-blue-grey-1'
@@ -67,15 +71,15 @@
                                   />
                   <br/>
                   <div>
-                  <amount v-model="amount" class="inline-block" style="min-width: 8rem"/>
-                  <asset v-model="assetClass" class="inline-block" style="min-width: 8rem"
-                         :options="assetClasses"/>
-                  <target v-model="target" class="inline-block" style="min-width: 8rem"
-                          :options="targets"/>
+                    <amount v-model="amount" class="inline-block" style="min-width: 8rem"/>
+                    <asset v-model="assetClass" class="inline-block" style="min-width: 8rem"
+                           :options="assetClasses"/>
+                    <target v-model="target" class="inline-block" style="min-width: 8rem"
+                            :options="targets"/>
 
-                  <exchange-rate v-model="amount" :target="target" :asset="assetClass"
-                                 class="text-h5 text-primary float-right"
-                                 style="padding-right: 2em;margin-top:1rem;"/>
+                    <exchange-rate v-model="amount" :target="target" :asset="assetClass"
+                                   class="text-h5 text-primary float-right"
+                                   style="padding-right: 2em;margin-top:1rem;"/>
                   </div>
 
                   <!-- <q-select -->
@@ -113,14 +117,14 @@
                   <!--           class="inline-block"/> -->
 
                   <!-- <span v-if="amount" class="text-h5 text-primary float-right"> -->
-                  <!--   ${{exchangeValue}} {{taxUnit}} </span> -->
+                    <!--   ${{exchangeValue}} {{taxUnit}} </span> -->
 
                   <!-- <div v-if="amount" class="text-weight-light text-h6"> -->
-                  <!--   <ul> -->
-                  <!--     <li><label> Fees: </label> {{feesAndTotals.fee}}</li> -->
-                  <!--     <li><label> Total: </label> {{feesAndTotals.total}} {{assetClass}} </li> -->
-                  <!--   </ul> -->
-                  <!-- </div> -->
+                    <!--   <ul> -->
+                      <!--     <li><label> Fees: </label> {{feesAndTotals.fee}}</li> -->
+                      <!--     <li><label> Total: </label> {{feesAndTotals.total}} {{assetClass}} </li> -->
+                      <!--   </ul> -->
+                    <!-- </div> -->
                 </q-tab-panel>
 
                 <q-tab-panel name="movies">
@@ -141,20 +145,20 @@
               <br/>
               <q-select filled style="width:92%; margin: auto"
                         v-model="network" :options="networks" label="Network" >
-                 <template v-slot:option="scope">
-          <q-item
-            v-bind="scope.itemProps"
-            v-on="scope.itemEvents"
-          >
-            <q-item-section>
-              <q-item-label v-html="scope.opt.label" />
-              <q-item-label caption>{{ scope.opt.url }}</q-item-label>
-            </q-item-section>
-            <q-item-section avatar>
-              {{ scope.opt.symbol }}
-            </q-item-section>
-          </q-item>
-                 </template>
+                <template v-slot:option="scope">
+                  <q-item
+                    v-bind="scope.itemProps"
+                    v-on="scope.itemEvents"
+                    >
+                    <q-item-section>
+                      <q-item-label v-html="scope.opt.label" />
+                      <q-item-label caption>{{ scope.opt.url }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section avatar>
+                      {{ scope.opt.symbol }}
+                    </q-item-section>
+                  </q-item>
+                </template>
               </q-select>
               <br/>
               <!-- <q-btn color="white" text-color="black" label="Compile" style="width:92%"/> -->
@@ -170,24 +174,24 @@
               <!--   narrow-indicator -->
               <!--   style="padding-top: 1em" -->
               <!--   > -->
-              <!--   <q-tab name="validate" label="Validate" /> -->
-              <!--   <q-tab name="download" label="Download" /> -->
-              <!--   <q-tab name="deploy" label="Deploy" /> -->
-              <!-- </q-tabs> -->
+                <!--   <q-tab name="validate" label="Validate" /> -->
+                <!--   <q-tab name="download" label="Download" /> -->
+                <!--   <q-tab name="deploy" label="Deploy" /> -->
+                <!-- </q-tabs> -->
 
               <!-- <q-separator /> -->
 
               <!-- <q-tab-panels v-model="depTab" animated class="bg-blue-grey-1 text-center"> -->
-              <!--   <q-tab-panel name="validate"> -->
-              <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
-              <!--   </q-tab-panel> -->
+                <!--   <q-tab-panel name="validate"> -->
+                  <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
+                  <!--   </q-tab-panel> -->
 
-              <!--   <q-tab-panel name="download"> -->
-              <!--     <div class="text-h6">Alarms</div> -->
-              <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
-              <!--   </q-tab-panel> -->
+                <!--   <q-tab-panel name="download"> -->
+                  <!--     <div class="text-h6">Alarms</div> -->
+                  <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
+                  <!--   </q-tab-panel> -->
 
-              <!--   <q-tab-panel name="deploy" class="text-center"> -->
+                <!--   <q-tab-panel name="deploy" class="text-center"> -->
                   <!-- <q-select filled v-model="depAddress" -->
                   <!--           :options="depAddresses" -->
                   <!--           label="Address" -->
@@ -195,11 +199,43 @@
                   <!-- <br> -->
                   <q-btn color="white" text-color="black" label="Deploy" style="width:92%"
                          @click="deploy" :disable="notValid()"/>
+                  <q-btn v-show="process && !dialog"
+                         color="white" text-color="black" label="Show Last Process Output"
+                         style="width:92%" @click="dialog = !dialog"/>
+                  <q-dialog
+                    v-model="dialog"
+                    persistent
+                    :maximized="maximizedToggle"
+                    transition-show="slide-up"
+                    transition-hide="slide-down"
+                    >
+                    <q-card class="bg-primary text-white">
+                      <q-bar>
+                        <q-space />
 
-                  <pre v-show="!notValid()"><code>
-                      {{ output }}
-                      {{ process }}
-                  </code></pre>
+                        <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
+                          <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip>
+                        </q-btn>
+                        <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
+                          <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip>
+                        </q-btn>
+                        <q-btn dense flat icon="close" v-close-popup>
+                          <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
+                        </q-btn>
+                      </q-bar>
+
+                      <q-card-section >
+                        <div class="text-h6">{{ status() }}</div>
+                      </q-card-section>
+
+                      <q-card-section class="q-pt-none">
+                        <code v-show="!notValid()" style="white-space: pre-wrap">
+
+                            {{ output }}
+                        </code>
+                      </q-card-section>
+                    </q-card>
+                  </q-dialog>
               <!--   </q-tab-panel> -->
               <!-- </q-tab-panels> -->
               </div>
@@ -223,7 +259,6 @@ import {
   Asset,
   Target,
   ExchangeRate,
-  getListIdentities,
   coinlayerList,
   getServerHome,
   postTransfer,
@@ -244,19 +279,16 @@ const depAddresses =
         '0x3J1j74SGjcbX6bVXqtZDrKy8p9P8i9AGR4'
       ]
 
-const tags = ['rps', 'whodo', 'unamed one', 'moonshine', 'crazy', 'kitty cats']
-
 const amountOptions = ['All at From: Address']
 
 export default {
   name: 'PageIndex',
   components: { AddressSelect, Amount, Asset, Target, ExchangeRate },
   created: function () {
-    getListIdentities(book => {
-      console.log('JS book', book)
-      this.fromAddressBook = book
-    }).catch(e => { console.log('err, et', e) })
+    this.$q.loading.show({
+      message: 'Connecting to server <b>"http://localhost:6741/"</b> and loading data.<br/><span class="text-info">Hang on, may take a while ...</span>'
 
+    })
     coinlayerList().then(l => {
       this.assetClasses = Object.values(l.crypto).map(c => {
         c.label = c.name_full
@@ -265,21 +297,37 @@ export default {
 
       for (const [key, value] of Object.entries(l.fiat)) {
         this.targets.push({ symbol: key, name: value, label: key + ': ' + value })
-        console.log(`${key}: ${value}`)
+        // console.log(`${key}: ${value}`)
       }
-      this.assetClasses.unshift({ label: 'Native Token (ADA)', symbol: 'ADA' })
+    }).catch(e => {
+      this.$q.loading.hide()
+      console.error('Error connecting to Coinlayer erver', e)
+      this.error = new Error('Error for coinlayer Server ' + e.message)
+    })
 
-      getServerHome().then(home => {
-        console.warn('Got Server Home!', home)
-        home.networks.map(n => { n.label = n.name })
-        this.networks = home.networks
-        this.network = home.networks[0]
+    this.assetClasses.unshift({ label: 'Native Token (ADA)', symbol: 'ADA' })
 
-        home.contacts.map(c => {
-          c.label = c.name + ' ' + c.hash + ' ' + c.tags.join(',')
-        })
-        this.toAddressBook = home.contacts
-      }).catch(e => { console.error(e); this.error = e })
+    getServerHome().then(home => {
+      console.warn('Got Server Home!', home)
+      this.$q.loading.hide()
+      home.networks.map(n => { n.label = n.name })
+      this.networks = home.networks
+      this.network = home.networks[0]
+
+      home.identities.map(c => {
+        c.label = c.name + ' ' + c.hash + '<br>&nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
+        this.allTags = [...new Set([...this.allTags, ...c.tags])]
+      })
+      this.fromAddressBook = home.identities
+      home.contacts.map(c => {
+        c.label = c.name + ' ' + c.hash + '<br> &nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
+        this.allTags = [...new Set([...this.allTags, ...c.tags])]
+      })
+      this.toAddressBook = home.contacts
+    }).catch(e => {
+      this.$q.loading.hide()
+      console.error('Error connecting to server', e)
+      this.error = new Error('Error for Glow Server @ localhost:6741 ' + e.message)
     })
   },
   computed: {
@@ -287,13 +335,15 @@ export default {
     exchangeValue: function () {
       return this.amount * 3.14159
     },
-
     feesAndTotals: function () { return feesAndTotals(this.amount, this.assetClass, this.blockchain) }
 
   },
   methods: {
     // fromAddressBook: function () { return theFromAddressBook },
     findAddressesByName,
+    status: function () {
+      return this.process ? this.process.thread.state : undefined
+    },
     notValid: function () {
       return this.toAddress === null || this.fromAddress === null || this.amount === null
     },
@@ -324,18 +374,22 @@ export default {
       postTransfer(AtoB).then(r => {
         console.log('Transfer Posted!!', r)
         this.process = r.data
+        this.dialog = true
         setTimeout(this.processProcess, 1000)
       }).catch(e => {
         console.error('ATOB ERR', e)
         this.error = e
       })
+    },
+    reloadPage () {
+      window.location.reload()
     }
   },
   data () {
     return {
-      allTags: tags,
       error: false,
-      tags: ['rps'],
+      allTags: [],
+      tags: [],
       tab: 'atob',
       depTab: 'deploy',
       splitterModel: 20,
@@ -359,7 +413,9 @@ export default {
       taxUnit: 'CAD',
       output: 'Waiting to deploy...',
       contract: 'Waiting for contract...',
-      process: false
+      process: false,
+      dialog: false,
+      maximizedToggle: true
     }
   }
 }
