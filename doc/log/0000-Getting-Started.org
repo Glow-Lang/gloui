@@ -535,7 +535,7 @@ yarn add axios
   (glow-server.post server "/process" process))
 
 (def (get-server-home (server default-server-url))
-  (js#.then (glow-server.get server "")
+  (js#.then (glow-server.get server "/home")
             (lambda (r)
               (js#jso-ref r data:))))
 
@@ -567,20 +567,6 @@ yarn add axios
 
 Eventually we need to call the glow. For now, mockup.
 
-#+begin_src scheme :tangle ../../gerbil.pkg
-(package: gloui)
-#+end_src
-
-
-#+begin_src scheme :tangle ../../build.ss :shebang "#!/usr/bin/env gxi"
-;; -*- Gerbil -*-
-
-(import :std/build-script)
-
-(defbuild-script
-  '("server"))
-
-#+end_src
 
 #+begin_src scheme :tangle ../../server.ss
 (import :drewc/ftw :std/text/json :std/srfi/13
@@ -588,9 +574,9 @@ Eventually we need to call the glow. For now, mockup.
         (only-in :gerbil/gambit/random random-integer)
         :std/misc/uuid :std/misc/process :gerbil/gambit/threads :gerbil/gambit/ports :std/misc/ports :std/srfi/1)
 
-(export #t)
+(export #t (import: :drewc/ftw))
 
-(def server-address "0.0.0.0:6741")
+(def server-address "127.0.0.1:6741")
 (def server-url (string-append "http://" server-address))
 
 (def ftw-httpd #f)
@@ -963,7 +949,6 @@ git push github gh-pages
 
 ** Fix the bug
 
-
 #+begin_src shell
 git checkout gh-pages
 git rm -rf .
@@ -980,3 +965,10 @@ git commit -m "Add img/ and favicon"
 git push github gh-pages
 git checkout master
 #+end_src
+
+* Conclusion
+
+The demo and server have been made live, and it works! A total of ~2d 4:35 *
+1.09098~ hours, or ~57.28hrs~.
+
+The actual work on the GUI itself took 32.73 hours.

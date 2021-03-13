@@ -16,11 +16,11 @@ gxpkg install github.com/drewc/gloui
 Now run the server.
 
 #+begin_src shell
-gxi -e "(import :gloui/server)" -e '(start-server!)' -e '(display "started GloUI Server")' -
+gxi -e "(import :gloui/gloui)" -e '(start-server!)' -e '(display "started GloUI Server\n")' -
 #+end_src
 
-With the server running, head over to https://drewc.github.io/gloui/ and wait 30
-seconds or so for it to load. Done!
+With the server running, head over to http://localhost:6741 wait 30 seconds or
+so for it to load. Done!
 
 * Development
 **  Install the dependencies

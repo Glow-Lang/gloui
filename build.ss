@@ -4,4 +4,4 @@
 (import :std/build-script)
 
 (defbuild-script
-  '("server"))
+  '("server" "file-server" "gloui"))

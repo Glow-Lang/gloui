@@ -354,7 +354,7 @@ book tags
   (glow-server.post server "/process" process))
 
 (def (get-server-home (server default-server-url))
-  (js#.then (glow-server.get server "")
+  (js#.then (glow-server.get server "/home")
             (lambda (r)
               (js#jso-ref r data:))))
 

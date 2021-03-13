@@ -3,9 +3,9 @@
         (only-in :gerbil/gambit/random random-integer)
         :std/misc/uuid :std/misc/process :gerbil/gambit/threads :gerbil/gambit/ports :std/misc/ports :std/srfi/1)
 
-(export #t)
+(export #t (import: :drewc/ftw))
 
-(def server-address "0.0.0.0:6741")
+(def server-address "127.0.0.1:6741")
 (def server-url (string-append "http://" server-address))
 
 (def ftw-httpd #f)

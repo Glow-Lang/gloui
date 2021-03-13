@@ -1,0 +1,53 @@
+#+TITLE: Static File Server
+
+We want to have one server serve both the files for the GUI and the Ajax the GUI
+requires.
+
+#+begin_src scheme :tangle ../../file-server.ss
+(import :gloui/server :std/net/httpd :std/srfi/13)
+(export #t)
+
+(def public_html #f)
+
+(def (static-file-directory)
+  (or public_html (current-directory)))
+
+(def (static-file-request? req)
+  (def path (http-request-path req))
+  (when (string=? path "/") (set! path "/index.html"))
+  (let ((file (path-expand
+         (string-copy path 1)
+         (static-file-directory))))
+    (if (not (file-exists? file)) #f (list file))))
+
+(define-endpoint static-file (cut static-file-request? <>))
+
+(def (static-file/GET path)
+  (http-response-file (current-http-response) [] path))
+
+
+#+end_src
+
+#+begin_src shell
+gxpkg build gloui ; gxi -e "(import :drewc/gerbil-swank)" -e "(import :gloui/server)" -e '(start-server!)' -e '(display "starting swank")' -e "(start-swank 4006)"
+#+end_src
+
+#+begin_src scheme :tangle ../../gerbil.pkg
+(package: gloui)
+#+end_src
+
+#+begin_src scheme :tangle ../../build.ss :shebang "#!/usr/bin/env gxi"
+;; -*- Gerbil -*-
+
+(import :std/build-script)
+
+(defbuild-script
+  '("server" "file-server" "gloui"))
+
+#+end_src
+
+#+begin_src scheme :tangle ../../gloui.ss
+(import :gloui/server :gloui/file-server)
+(export (import: :gloui/server)
+        (import: :gloui/file-server))
+#+end_src
