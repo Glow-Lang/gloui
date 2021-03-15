@@ -191,7 +191,7 @@
         components: { q-select: q-select }
         props: { value: {}
                  options: { default: (lambda _ ["CAD"]) }
-                 label: { default: "Target (fiat)" }}
+                 label: { default: "Unit of accounting" }}
       render: (js#function (h)  (h "q-select"
                    { props: { filled: #t
                               value: (js#jso-ref js#this value:)
@@ -206,7 +206,7 @@
         props: { value: {}
                  target: {}
                  asset: {}
-                 label: { default: "Target (fiat)" }}
+                 label: { default: "Unit of account" }}
         data: (lambda _
                 { loading: #f live: #f curr: 0 target-symbol: "" token-symbol: "" } )
       render: (js#function (h)
@@ -246,11 +246,12 @@
 
                   (h "div" [
                              (h "span" { props: { showing: (not (js#jso-ref js#this loading:)) } }
-                                ["$" (js#js->scm
+                                ["1 " token-symbol " = "
+                                 (js#js->scm
                                       (js#expr "(Math.round((@1@ + Number.EPSILON) * 100) / 100).toFixed(2)"
                                                (js#ref js#this live:)))
                                  " "
-                             (js#jso-ref fiat symbol:) "<-" token-symbol ])
+                                 (js#jso-ref fiat symbol:)])
                              (h "q-inner-loading"
                                 { props: { showing: (js#jso-ref js#this loading:) } }
                                 [(h "q-spinner-gears" { props: { size: "50px" color: "primary" } })])

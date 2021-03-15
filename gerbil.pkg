@@ -1,1 +1,2 @@
-(package: gloui)
+(package: gloui
+ depend: ("github.com/drewc/ftw"))

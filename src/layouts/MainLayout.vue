@@ -24,6 +24,7 @@
       show-if-above
       bordered
       content-class="bg-grey-1"
+      height="100%"
     >
       <q-list>
         <q-item-label
@@ -38,6 +39,9 @@
           v-bind="link"
         />
       </q-list>
+
+      <div class="absolute-bottom" style="width: 100%; text-align: left; padding-left: 1.5vmin; padding-bottom: 1.5vmin;">
+        <a href="https://mukn.io"><img alt="MuKn logo" src="~assets/mukn-icon.png" width="12%"></a></div>
     </q-drawer>
 
     <q-page-container>

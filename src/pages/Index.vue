@@ -23,7 +23,6 @@
           <q-tab name="signature" label="Buy Signature" no-caps />
           <q-tab name="coinflip" label="Coin Flip" no-caps />
           <q-tab name="assetswap" label="Asset Swap" no-caps/>
-          <img alt="MuKn logo" src="~assets/mukn-name-2.png">
         </q-tabs>
       </template>
 
@@ -32,8 +31,7 @@
 
           <template v-slot:before>
             <div class="bg-white">
-              <br>
-              <div class="text-h4 text-center">Contract Inputs</div>
+              <!--<br> <div class="text-h4 text-center">Contract Inputs</div>-->
               <q-select
                 filled
                 v-model="tags"
@@ -78,7 +76,7 @@
                             :options="targets"/>
 
                     <exchange-rate v-model="amount" :target="target" :asset="assetClass"
-                                   class="text-h5 text-primary float-right"
+                                   class="text-primary float-right"
                                    style="padding-right: 2em;margin-top:1rem;"/>
                   </div>
 
@@ -133,10 +131,10 @@
               </q-tab-panels>
               <hr/>
 
-              <div class="text-h4 text-center">Contract</div>
+              <!-- <div class="text-h4 text-center">Contract</div>
               <pre><code>
                   {{ contract }}
-              </code></pre>
+              </code></pre> -->
             </div>
           </template>
 
@@ -269,6 +267,10 @@ import {
   findAddressesByName,
   feesAndTotals
 } from '../assets/addressBook.ss'
+
+import RTS from 'gxjs'
+RTS.host_function2scm = RTS.function2scm
+window.GXJS = RTS
 
 const choices = ['Rock', 'Paper', 'Scissors']
 
@@ -406,9 +408,9 @@ export default {
       choices,
       amount: null,
       amountOptions: amountOptions,
-      assetClass: { label: 'Native Token (ADA)', symbol: 'ADA' },
+      assetClass: { label: 'ADA: Cardano Token', symbol: 'ADA' },
       assetClasses: [],
-      target: { label: 'CAD: Canadian Dollar', symbol: 'CAD', name: 'Canadian Dollar' },
+      target: { label: 'CAD: Canadian Dollar', symbol: 'CAD' },
       targets: [],
       taxUnit: 'CAD',
       output: 'Waiting to deploy...',
