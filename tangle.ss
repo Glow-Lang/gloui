@@ -7,9 +7,13 @@
 
 (def source-of-source
   '("README.org"
+    ;;"doc/log/0000-Getting-Started.org"
+    ;;"doc/log/0001-Static-File-Server.org"
+    "doc/gerbil.org"
     "doc/ftw.org"
-    "doc/log/0000-Getting-Started.org"
-    "doc/log/0001-Static-File-Server.org"))
+    "doc/json.org"
+    "doc/identities.org"
+    "doc/widgets.org"))
 
 ;; # Use Emacs to tangle the files.
 ;;    tangle() {

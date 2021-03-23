@@ -1,4 +1,4 @@
 #!/usr/bin/env gxi
-(import :gloui/gloui)
+(import :mukn/gloui/gloui)
 (start-server!)
 (displayln "started GloUI Server")

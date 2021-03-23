@@ -1,4 +1,4 @@
-(import :gloui/server :std/net/httpd :std/srfi/13)
+(import :mukn/gloui/server :std/net/httpd :std/srfi/13)
 (export #t)
 
 (def public_html #f)

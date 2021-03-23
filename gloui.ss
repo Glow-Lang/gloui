@@ -1,3 +1,3 @@
-(import :gloui/server :gloui/file-server)
-(export (import: :gloui/server)
-        (import: :gloui/file-server))
+(import :mukn/gloui/server :mukn/gloui/file-server)
+(export (import: :mukn/gloui/server)
+        (import: :mukn/gloui/file-server))

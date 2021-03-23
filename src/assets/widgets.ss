@@ -146,19 +146,8 @@
                                        #t)
 ))}})))))))
 
-
- ;; const amountOptions = ['All at From: Address']
- ;; <q-select
- ;; filled v-model="amount" label="Amount" :options="amountOptions"
- ;; use-input
- ;; use-chips
- ;; new-value-mode="add"
- ;; />
-
-
-(def amount
-  (lambda (go _)
-    (go
+(def (amount go _)
+  (go
     { name: "Amount"
       components: { q-select: q-select }
       props: { value: {}
@@ -171,7 +160,7 @@
                               value: (js#jso-ref js#this value:)
                               options: (js#jso-ref js#this options:)
                               label: (js#jso-ref js#this label:)}
-                     on: { input: (v-model-input js#this) }}))})))
+                     on: { input: (v-model-input js#this) }}))}))
 (def (asset go _)
   (go { name: "Asset"
         components: { q-select: q-select }
@@ -191,7 +180,7 @@
         components: { q-select: q-select }
         props: { value: {}
                  options: { default: (lambda _ ["CAD"]) }
-                 label: { default: "Unit of accounting" }}
+                 label: { default: "Unit of Account" }}
       render: (js#function (h)  (h "q-select"
                    { props: { filled: #t
                               value: (js#jso-ref js#this value:)
@@ -201,65 +190,62 @@
         })
   )
 (def (exchange-rate go _)
-  (go { name: "ExchangeRate"
+  (go {
+       name: "ExchangeRate"
        components: { q-inner-loading: q-inner-loading q-spinner-gears: q-spinner-gears }
-        props: { value: {}
-                 target: {}
-                 asset: {}
-                 label: { default: "Unit of account" }}
-        data: (lambda _
-                { loading: #f live: #f curr: 0 target-symbol: "" token-symbol: "" } )
-      render: (js#function (h)
-                (def val (js#jso-ref js#this value:))
-                (def curr (js#jso-ref js#this curr:))
-                (def token (js#jso-ref js#this asset:))
-                (def token-symbol (js#jso-ref token symbol:))
-                (def fiat (js#jso-ref js#this target:))
+       props: { value: {}
+                target: {}
+                asset: {}
+                label: { default: "Unit of Account" }}
+       data: (lambda _
+               { loading: #f live: #f curr: 0 target-symbol: "" token-symbol: "" } )
+       render: (js#function (h)
+                 (def val (js#jso-ref js#this value:))
+                 (def curr (js#jso-ref js#this curr:))
+                 (def token (js#jso-ref js#this asset:))
+                 (def token-symbol (js#jso-ref token symbol:))
+                 (def fiat (js#jso-ref js#this target:))
 
-                (unless (number? val)
-                  (set! val (js#js->scm
-                             (js#expr "(() => { try { return Number(@1@) } catch (e) {  return (@1@) }})();"
-                                      (js#scm->js val)))))
+                 (unless (number? val)
+                   (set! val (js#js->scm
+                              (js#expr "(() => { try { return Number(@1@) } catch (e) {  return (@1@) }})();"
+                                       (js#scm->js val)))))
 
-                (js#stmt "console.warn('Excnage', Number(@1@), @2@, @3@)" val token fiat)
+                 (js#stmt "console.warn('Excnage', Number(@1@), @2@, @3@)" val token fiat)
 
-                (when (and (number? val) (> val 0))
+                 (when (and (number? val) (> val 0))
 
-                  (when (or (not (= val
-                                    (js#jso-ref js#this curr:)))
-                            (not (string= token-symbol (js#jso-ref js#this token-symbol:))))
-                    (set! (js#jso-ref js#this loading:) #t)
-                    (set! (js#jso-ref js#this live:) #f)
-                    (set! (js#jso-ref js#this curr:) val))
+                   (when (or (not (= val
+                                     (js#jso-ref js#this curr:)))
+                             (not (string= token-symbol (js#jso-ref js#this token-symbol:))))
+                     (set! (js#jso-ref js#this loading:) #t)
+                     (set! (js#jso-ref js#this live:) #f)
+                     (set! (js#jso-ref js#this curr:) val))
 
-                  (when (and (js#jso-ref js#this loading:)
-                             (not (js#jso-ref js#this live:)))
-                    (set! (js#jso-ref js#this token-symbol:) token-symbol)
-                    (set! (js#jso-ref js#this live:) #t)
-                    (js#.then (coinlayer-live { params: { target: (js#jso-ref fiat symbol:)
-                                                          symbols: token-symbol} })
-                              (lambda (l)
-                                (set! (js#jso-ref js#this loading:) #f)
-                                (set! (js#jso-ref js#this live:)
-                                  (* val (js#jso-ref l rates: token-symbol)))
-                                (js#stmt "console.warn('clist', (@1@))" (js#jso-ref l rates: token-symbol)))))
+                   (when (and (js#jso-ref js#this loading:)
+                              (not (js#jso-ref js#this live:)))
+                     (set! (js#jso-ref js#this token-symbol:) token-symbol)
+                     (set! (js#jso-ref js#this live:) #t)
+                     (js#.then (coinlayer-live { params: { target: (js#jso-ref fiat symbol:)
+                                                           symbols: token-symbol} })
+                               (lambda (l)
+                                 (set! (js#jso-ref js#this loading:) #f)
+                                 (set! (js#jso-ref js#this live:)
+                                   (* val (js#jso-ref l rates: token-symbol)))
+                                 (js#stmt "console.warn('clist', (@1@))" (js#jso-ref l rates: token-symbol)))))
 
-                  (h "div" [
-                             (h "span" { props: { showing: (not (js#jso-ref js#this loading:)) } }
-                                ["1 " token-symbol " = "
-                                 (js#js->scm
-                                      (js#expr "(Math.round((@1@ + Number.EPSILON) * 100) / 100).toFixed(2)"
-                                               (js#ref js#this live:)))
-                                 " "
-                                 (js#jso-ref fiat symbol:)])
-                             (h "q-inner-loading"
-                                { props: { showing: (js#jso-ref js#this loading:) } }
-                                [(h "q-spinner-gears" { props: { size: "50px" color: "primary" } })])
-                            ]
-
-                 )))
-        })
-  )
+                   (h "div"
+                      [(h "span" { props:
+                                   { showing: (not (js#jso-ref js#this loading:)) }}
+                          ["1 " token-symbol " = "
+                           (js#js->scm
+                            (js#expr "(Math.round((@1@ + Number.EPSILON) * 100) / 100).toFixed(2)"
+                                     (js#ref js#this live:)))
+                           " "
+                           (js#jso-ref fiat symbol:)])
+                       (h "q-inner-loading"
+                          { props: { showing: (js#jso-ref js#this loading:) } }
+                          [(h "q-spinner-gears" { props: { size: "50px" color: "primary" } })])])))}))
 (def (filter-book-using-tags book tags)
   (js#expression #<<EOF
  ((book, tags) => {
@@ -280,34 +266,6 @@
 EOF
 book tags
 ))
-
-(js#decl "const axios = require('axios')")
-
-(def coinlayer-key "bbe3ecfc186356e177696808b423aff6")
-
-(def coinlayer-instance
-  (js#js->foreign
-   (js#expr "axios.create({
-   baseURL: 'https://api.coinlayer.com/',
-   timeout: 10000,
-   params: { access_key: (@1@) }})"
-            (js#scm->js coinlayer-key))))
-
-(def (coinlayer.get url (args {}))
-  (js#js->foreign
-   (js#expr "(() => {return (@1@).get(@2@, (@3@))})();"
-            (js#foreign->js coinlayer-instance)
-            (js#scm->js url)
-            (js#foreign->js args))))
-
-(def (coinlayer-list (args {}))
- (js#.then (coinlayer.get "/list" args)
-           (lambda (r)
-               (js#jso-ref r data:))))
-(def (coinlayer-live (args {}))
- (js#.then (coinlayer.get "/live" args)
-           (lambda (r)
-               (js#jso-ref r data:))))
 
 (def (axios.get url)
   (js#stmt "console.error('Getting URL', (@1@))"
@@ -382,6 +340,33 @@ book tags
 
 
 
+(js#decl "const axios = require('axios')")
+
+(def coinlayer-key "bbe3ecfc186356e177696808b423aff6")
+
+(def coinlayer-instance
+  (js#js->foreign
+   (js#expr "axios.create({
+   baseURL: 'https://api.coinlayer.com/',
+   timeout: 10000,
+   params: { access_key: (@1@) }})"
+            (js#scm->js coinlayer-key))))
+
+(def (coinlayer.get url (args {}))
+  (js#js->foreign
+   (js#expr "(() => {return (@1@).get(@2@, (@3@))})();"
+            (js#foreign->js coinlayer-instance)
+            (js#scm->js url)
+            (js#foreign->js args))))
+
+(def (coinlayer-list (args {}))
+ (js#.then (coinlayer.get "/list" args)
+           (lambda (r)
+               (js#jso-ref r data:))))
+(def (coinlayer-live (args {}))
+ (js#.then (coinlayer.get "/live" args)
+           (lambda (r)
+               (js#jso-ref r data:))))
 
 (js#statement "module.exports = {
  AddressSelect: (@1@),

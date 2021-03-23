@@ -20,6 +20,7 @@
           <br>
           <h5 class="text-center" style="margin:0">Trusted DApp Library</h5>
           <q-tab name="atob" label="Send Tokens from A to B" no-caps />
+          <q-tab name="erc20" label="ERC20 Transfer" no-caps />
           <q-tab name="signature" label="Buy Signature" no-caps />
           <q-tab name="coinflip" label="Coin Flip" no-caps />
           <q-tab name="assetswap" label="Asset Swap" no-caps/>
@@ -49,6 +50,9 @@
                 transition-prev="jump-up"
                 transition-next="jump-up"
                 >
+                <q-tab-panel name="erc20">
+                  <div class="text-h4 q-mb-md">Address Book Testing</div>
+                </q-tab-panel>
                 <q-tab-panel name="signature">
                   <div class="text-h4 q-mb-md">Address Book Testing</div>
                 </q-tab-panel>
@@ -269,7 +273,7 @@ import {
 } from '../assets/addressBook.ss'
 
 import RTS from 'gxjs'
-RTS.host_function2scm = RTS.function2scm
+// RTS.host_function2scm = RTS.function2scm
 window.GXJS = RTS
 
 const choices = ['Rock', 'Paper', 'Scissors']

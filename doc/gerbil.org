@@ -1,0 +1,17 @@
+#+TITLE: Gerbil
+
+#+begin_src scheme :tangle ../build.ss :shebang #!/usr/bin/env gxi
+;; -*- Gerbil -*-
+
+(import :std/build-script)
+
+(defbuild-script
+  '("server/ftw" "server/json" "server/identities" "file-server" "gloui"))
+
+
+#+end_src
+
+#+begin_src scheme :tangle ../gerbil.pkg
+(package: mukn/gloui
+ depend: ("github.com/drewc/ftw"))
+#+end_src

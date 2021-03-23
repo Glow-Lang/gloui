@@ -1,9 +1,13 @@
 (import :drewc/ftw :std/text/json :std/srfi/13
         (only-in :gerbil/gambit shell-command display-exception)
         (only-in :gerbil/gambit/random random-integer)
-        :std/misc/uuid :std/misc/process :gerbil/gambit/threads :gerbil/gambit/ports :std/misc/ports :std/srfi/1)
+        :std/misc/uuid :std/misc/process
+        :gerbil/gambit/threads
+        :gerbil/gambit/ports
+        :std/misc/ports :std/srfi/1
+        :mukn/gloui/server/ftw)
 
-(export #t (import: :drewc/ftw))
+(export #t (import: :drewc/ftw) (import: :mukn/gloui/server/ftw))
 
 (def server-address "127.0.0.1:6741")
 (def server-url (string-append "http://" server-address))

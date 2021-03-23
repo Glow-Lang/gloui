@@ -1,0 +1,91 @@
+#+TITLE: POO: Prototype Object Orientation for Gerbil
+
+Gerbil-POO is an implementation of Prototype Object Orientation for Gerbil. This object model is directly inspired by that of Nix, isomorphic to that of Jsonnet.
+
+If that means little to you, welcome to the club! :) Hopefully this document
+goes into enough detail to make sense of that detail.
+
+#+begin_src scheme
+(import :clan/poo/object :clan/poo/mop)
+#+end_src
+
+* What are objects?
+
+"In POO, an object, embodies two related but very different concepts, that it is important to distinguish: a prototype, and an instance."[fn:poomd]
+
+Ok, so, first, I want an ~ERC20~ contract that is trivially turned to *JSON*.
+Faré has told me that POO has ~json<-~ to get JSON from object and ~<-json~ to
+get an object from *JSON*.
+
+Apparently it requires ~define-type~, which I am also clueless about, so here we go.
+
+First, an ~ERC20~ contract is I know it, in a /poo/ special form known as ~.o~.
+
+  - .o ::
+         #+begin_src scheme
+(.o [([:: [self [super [extra-slots ...]]]])] slot-definitions ...)
+         #+end_src
+
+Let's take a /poo/!
+
+#+begin_src scheme (import :clan/poo/mop)
+(def ASS
+  (.o
+   (address "0x62Cf950CE51e8f1f8AD8F8a54439c02353d380Fd")
+   (name  "Alice's Special Specie")
+   (symbol  "ASS")))
+#+end_src
+
+The ~.ref~ function gives us references.
+
+#+begin_src scheme
+> (.ref ASS 'name) ;; => "Alice's Special Specie"
+#+end_src
+
+For a slot with a constant symbol name, there's ~.@~, AKA ~.get~.
+
+#+begin_src scheme
+(.@ ASS name) ;; => "Alice's Special Specie"
+(.get ASS name) ;; => "Alice's Special Specie"
+#+end_src
+
+We can change our ~def~ into a ~def~.
+
+  - .def ::
+         #+begin_src scheme
+(.def (name [self] [super] [slots ...]) slot-definitions ...)
+         #+end_src
+
+The name can be a simple symbol in which case the options are omitted.
+
+#+begin_src scheme
+(.def ASS
+   (address "0x62Cf950CE51e8f1f8AD8F8a54439c02353d380Fd")
+   (name  "Alice's Special Specie")
+   (symbol  "ASS"))
+#+end_src
+
+Let's make a function that returns an ERC20 object.
+
+#+begin_src scheme
+(def (ERC20 (symbol #f)
+            (address #f)
+            (name #f))
+  (.o (:: @ JSON) symbol address name))
+#+end_src
+
+That does avoid the ~.def~ completely but we want to turn them into JSON, and
+back again.
+
+This is what I came up with, totally cribbed from POO's mop.ss.
+
+#+begin_src scheme
+(def (cons-jsonify s.v)
+  (match s.v ([s . v]
+             (if (eqv? (string-ref (symbol->string s) 0) #\.)
+               #f
+               s.v))))
+(.def JSON
+  .json<-: (lambda (x) (list->hash-table (filter-map cons-jsonify (.alist x))))
+  .<-json: (lambda (j) (object<-alist (hash->list j))))
+#+end_src

@@ -1,0 +1,10 @@
+(import :clan/poo/object :clan/poo/mop)
+(export #t)
+(def (cons-jsonify s.v)
+  (match s.v ([s . v]
+             (if (eqv? (string-ref (symbol->string s) 0) #\.)
+               #f
+               s.v))))
+(.def JSON
+  .json<-: (lambda (x) (list->hash-table (filter-map cons-jsonify (.alist x))))
+  .<-json: (lambda (j) (object<-alist (hash->list j))))

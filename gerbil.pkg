@@ -1,2 +1,2 @@
-(package: gloui
+(package: mukn/gloui
  depend: ("github.com/drewc/ftw"))
