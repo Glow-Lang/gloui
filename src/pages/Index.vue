@@ -51,7 +51,27 @@
                 transition-next="jump-up"
                 >
                 <q-tab-panel name="erc20">
-                  <div class="text-h4 q-mb-md">Address Book Testing</div>
+                  <h5>ERC20 Transfers</h5>
+                  <address-select :tags="tags"
+                                  v-model="fromAddress"
+                                  :book="fromAddressBook"
+                                  label="Select From: Address"
+                                  />
+                  <br/>
+                  <address-select :tags="tags"
+                                  v-model="toAddress"
+                                  :book="toAddressBook"
+                                  new-value-mode="add"
+                                  label="Select To: Address"
+                                  />
+                  <br/>
+                  <div>
+                    <amount v-model="amount" class="inline-block" style="min-width: 8rem"/>
+                    <ERC20Asset v-model="ERC20Asset"
+                                :options="ERC20Contracts"
+                                class="inline-block" style="min-width: 8rem"
+                                />
+                  </div>
                 </q-tab-panel>
                 <q-tab-panel name="signature">
                   <div class="text-h4 q-mb-md">Address Book Testing</div>
@@ -84,49 +104,6 @@
                                    style="padding-right: 2em;margin-top:1rem;"/>
                   </div>
 
-                  <!-- <q-select -->
-                  <!--   filled -->
-                  <!--   v-model="fromAddress" -->
-                  <!--   :options="fromAddressBook" -->
-                  <!--   use-input -->
-                  <!--   use-chips -->
-                  <!--   label="From: Address" /> -->
-
-                  <br/>
-                  <!-- <q-select -->
-                  <!--   label="To: Address" -->
-                  <!--   filled v-model="toAddress" -->
-                  <!--   :options="toAddressBook" -->
-                  <!--   use-input -->
-                  <!--   use-chips -->
-                  <!--   new-value-mode="add" -->
-
-                  <!--   input-debounce="0" -->
-                  <!--   @filter="filterTo" -->
-                  <!--   /> -->
-                  <!-- <br/> -->
-                  <!-- <q-select filled v-model="choice" :options="choices" label="Choice" /> -->
-                  <br/>
-
-                  <!-- <q-select -->
-                  <!--   filled v-model="amount" label="Amount" :options="amountOptions" -->
-                  <!--   use-input -->
-                  <!--   use-chips -->
-                  <!--   new-value-mode="add" -->
-                  <!--   class="inline-block" -->
-                  <!--   /> -->
-                  <!-- <q-select filled v-model="assetClass" :options="assetClasses" label="Asset" -->
-                  <!--           class="inline-block"/> -->
-
-                  <!-- <span v-if="amount" class="text-h5 text-primary float-right"> -->
-                    <!--   ${{exchangeValue}} {{taxUnit}} </span> -->
-
-                  <!-- <div v-if="amount" class="text-weight-light text-h6"> -->
-                    <!--   <ul> -->
-                      <!--     <li><label> Fees: </label> {{feesAndTotals.fee}}</li> -->
-                      <!--     <li><label> Total: </label> {{feesAndTotals.total}} {{assetClass}} </li> -->
-                      <!--   </ul> -->
-                    <!-- </div> -->
                 </q-tab-panel>
 
                 <q-tab-panel name="movies">
@@ -154,52 +131,15 @@
                     >
                     <q-item-section>
                       <q-item-label v-html="scope.opt.label" />
-                      <q-item-label caption>{{ scope.opt.url }}</q-item-label>
+                      <q-item-label caption>{{ scope.opt.description }}</q-item-label>
                     </q-item-section>
                     <q-item-section avatar>
-                      {{ scope.opt.symbol }}
+                      {{ scope.opt.shortName }}
                     </q-item-section>
                   </q-item>
                 </template>
               </q-select>
-              <br/>
-              <!-- <q-btn color="white" text-color="black" label="Compile" style="width:92%"/> -->
-              <br/>
-              <!-- <q-tabs -->
-              <!--   v-model="depTab" -->
-              <!--   dense -->
-              <!--   class="text-grey" -->
-              <!--   shrink -->
-              <!--   active-color="primary" -->
-              <!--   indicator-color="primary" -->
-              <!--   align="justify" -->
-              <!--   narrow-indicator -->
-              <!--   style="padding-top: 1em" -->
-              <!--   > -->
-                <!--   <q-tab name="validate" label="Validate" /> -->
-                <!--   <q-tab name="download" label="Download" /> -->
-                <!--   <q-tab name="deploy" label="Deploy" /> -->
-                <!-- </q-tabs> -->
-
-              <!-- <q-separator /> -->
-
-              <!-- <q-tab-panels v-model="depTab" animated class="bg-blue-grey-1 text-center"> -->
-                <!--   <q-tab-panel name="validate"> -->
-                  <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
-                  <!--   </q-tab-panel> -->
-
-                <!--   <q-tab-panel name="download"> -->
-                  <!--     <div class="text-h6">Alarms</div> -->
-                  <!--     Lorem ipsum dolor sit amet consectetur adipisicing elit. -->
-                  <!--   </q-tab-panel> -->
-
-                <!--   <q-tab-panel name="deploy" class="text-center"> -->
-                  <!-- <q-select filled v-model="depAddress" -->
-                  <!--           :options="depAddresses" -->
-                  <!--           label="Address" -->
-                  <!--           style="width:92%; margin: auto"/> -->
-                  <!-- <br> -->
-                  <q-btn color="white" text-color="black" label="Deploy" style="width:92%"
+                  <q-btn color="white" text-color="black" label="Send" style="width:92%"
                          @click="deploy" :disable="notValid()"/>
                   <q-btn v-show="process && !dialog"
                          color="white" text-color="black" label="Show Last Process Output"
@@ -262,11 +202,22 @@ import {
   Target,
   ExchangeRate,
   coinlayerList,
-  getServerHome,
+  // getServerHome,
   postTransfer,
   postProcess
 } from '../assets/widgets.ss'
 
+import { listIdentities } from '../assets/identities.ss'
+import { listContacts } from '../assets/contacts.ss'
+import { listEvmNetworks } from '../assets/ethereum-networks.ss'
+import {
+  ERC20Contracts,
+  ERC20Asset,
+  ERC20Balance,
+  ERC20Transfer
+} from '../assets/erc20.ss'
+
+window.GloUI = { listIdentities, ERC20Balance }
 import {
   findAddressesByName,
   feesAndTotals
@@ -289,7 +240,7 @@ const amountOptions = ['All at From: Address']
 
 export default {
   name: 'PageIndex',
-  components: { AddressSelect, Amount, Asset, Target, ExchangeRate },
+  components: { AddressSelect, Amount, Asset, Target, ExchangeRate, ERC20Asset },
   created: function () {
     this.$q.loading.show({
       message: 'Connecting to server <b>"http://localhost:6741/"</b> and loading data.<br/><span class="text-info">Hang on, may take a while ...</span>'
@@ -313,28 +264,47 @@ export default {
 
     this.assetClasses.unshift({ label: 'Native Token (ADA)', symbol: 'ADA' })
 
-    getServerHome().then(home => {
-      console.warn('Got Server Home!', home)
-      this.$q.loading.hide()
-      home.networks.map(n => { n.label = n.name })
-      this.networks = home.networks
-      this.network = home.networks[0]
+    listIdentities().then(ids => {
+      console.warn('identites', ids)
+      ids.map(c => {
+        c.label = c.name + ' ' + c.address + '<br>&nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
+        this.allTags = [...new Set([...this.allTags, ...c.tags])]
+      })
+      this.fromAddressBook = ids
+    })
 
-      home.identities.map(c => {
-        c.label = c.name + ' ' + c.hash + '<br>&nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
+    listContacts().then(contacts => {
+      contacts.map(c => {
+        c.label = c.name + ' ' + c.address + '<br> &nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
         this.allTags = [...new Set([...this.allTags, ...c.tags])]
       })
-      this.fromAddressBook = home.identities
-      home.contacts.map(c => {
-        c.label = c.name + ' ' + c.hash + '<br> &nbsp;&nbsp;&nbsp;&nbsp; tags: [' + c.tags.join(',') + ']'
-        this.allTags = [...new Set([...this.allTags, ...c.tags])]
-      })
-      this.toAddressBook = home.contacts
+      this.toAddressBook = contacts
+    })
+
+    listEvmNetworks().then(networks => {
+      networks.map(n => { n.label = n.name })
+      this.networks = networks
+      this.network = networks[0]
+      this.$q.loading.hide()
     }).catch(e => {
       this.$q.loading.hide()
       console.error('Error connecting to server', e)
       this.error = new Error('Error for Glow Server @ localhost:6741 ' + e.message)
     })
+
+    ERC20Contracts().then(e => {
+      e.data.map(c => {
+        c.label = c.symbol + ' ' + c.description + '<br> &nbsp;&nbsp;' + c.address
+        console.warn('ctnct', c)
+        return c
+      })
+
+      this.ERC20Contracts = e.data
+    }).catch(e => {
+      console.error(e)
+    })
+
+    console.warn('conrtsacts:', this.ERC20Contracts)
   },
   computed: {
     //    fromAddressBook: function () { return theFromAddressBook },
@@ -355,7 +325,11 @@ export default {
     },
     deploy: function () {
       console.warn('deploy', this.tab)
-      this.deployAtoB()
+      if (this.tab === 'atob') {
+        this.deployAtoB()
+      } else if (this.tab === 'erc20') {
+        this.deployERC20Transfer()
+      }
     },
     processProcess () {
       postProcess({ uuid: this.process.uuid })
@@ -385,6 +359,21 @@ export default {
       }).catch(e => {
         console.error('ATOB ERR', e)
         this.error = e
+      })
+    },
+    deployERC20Transfer: function () {
+      const xfer = {
+        from: this.fromAddress,
+        to: this.toAddress,
+        amount: this.amount,
+        token: this.ERC20Asset,
+        network: this.network
+      }
+      ERC20Transfer(xfer).then(r => {
+        console.log('ERC20 result', r)
+        this.process = r
+        this.dialog = true
+        setTimeout(this.processProcess, 1000)
       })
     },
     reloadPage () {
@@ -421,7 +410,10 @@ export default {
       contract: 'Waiting for contract...',
       process: false,
       dialog: false,
-      maximizedToggle: true
+      maximizedToggle: true,
+      ERC20Asset: null,
+      ERC20Contracts: ['asd'],
+      ERC20FromBalance: false
     }
   }
 }

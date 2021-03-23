@@ -1,0 +1,60 @@
+#+TITLE: Ethereum Networks
+
+#+begin_src scheme :tangle "../server/ethereum-networks.ss"
+(import :mukn/ethereum/network-config :mukn/gloui/server/json
+        :mukn/gloui/server/ftw
+        :clan/poo/object :clan/poo/mop :std/text/json :std/sugar)
+(export #t)
+
+(def (distinct-evm-networks)
+  (def dnws (make-hash-table))
+  (reverse (filter-map (match <>
+                 ([_ . o]
+                  (let ((n (.@ o network)))
+                    (if (hash-ref dnws n #f)
+                      #f
+                      (begin (hash-put! dnws n #t) o)))))
+               (hash->list ethereum-networks))))
+
+(def (json<-list-evm-networks)
+  (def nws (map (lambda (o)
+                  (json<- JSON
+                          (.o ()
+                              name: (.@ o name)
+                              shortName: (.@ o shortName)
+                              network: (.@ o network)
+                              chain: (.@ o chain)
+                              description: (try (.@ o description)
+                                                         (catch _ #f)))))
+                (distinct-evm-networks)))
+  (with-output-to-string "" (cut write-json nws)))
+
+
+(define-endpoint list-evm-networks "/list-evm-networks")
+
+(def (list-evm-networks/GET)
+  (respond/JSON (json<-list-evm-networks)))
+
+#+end_src
+
+
+* Client
+
+#+begin_src scheme :tangle ../src/assets/ethereum-networks.ss
+(import :js)
+(extern namespace: gloui/widgets
+  default-server-url glow-server.get glow-server.post
+  q-select v-model-input js#.then)
+
+(def (list-evm-networks (server default-server-url))
+  (js#.then
+   (glow-server.get server "/list-evm-networks")
+   (cut js#jso-ref <> data:)))
+
+(js#stmt
+ "module.exports = {
+  listEvmNetworks: (@1@)
+}"
+ (js#scm->js list-evm-networks))
+
+#+end_src

@@ -1,4 +1,6 @@
+namespace: gloui/widgets
 (import :js)
+
 
 ;; (def (on-click ctr)
 ;;   (js#jso
@@ -237,7 +239,7 @@
                    (h "div"
                       [(h "span" { props:
                                    { showing: (not (js#jso-ref js#this loading:)) }}
-                          ["1 " token-symbol " = "
+                          [ val " " token-symbol " = "
                            (js#js->scm
                             (js#expr "(Math.round((@1@ + Number.EPSILON) * 100) / 100).toFixed(2)"
                                      (js#ref js#this live:)))

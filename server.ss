@@ -5,75 +5,28 @@
         :gerbil/gambit/threads
         :gerbil/gambit/ports
         :std/misc/ports :std/srfi/1
-        :mukn/gloui/server/ftw)
+        :mukn/gloui/server/ftw
+        :mukn/gloui/server/process
+        :mukn/gloui/server/identities
+        :mukn/gloui/server/contacts
+        :mukn/gloui/server/ethereum-networks
+        :mukn/gloui/server/erc20)
 
 (export #t (import: :drewc/ftw) (import: :mukn/gloui/server/ftw))
 
-(def server-address "127.0.0.1:6741")
-(def server-url (string-append "http://" server-address))
+;; (def server-address "127.0.0.1:6741")
+;; (def server-url (string-append "http://" server-address))
 
-(def ftw-httpd #f)
+;; (def ftw-httpd #f)
 
-(def (start-server! (restart? #f))
-  (if (and ftw-httpd (not restart?)) ftw-httpd
-      (begin
-        (when ftw-httpd (stop-ftw-http-server! ftw-httpd))
-        (set! ftw-httpd (start-ftw-http-server! server-address))))
-  ftw-httpd)
+;; (def (start-server! (restart? #f))
+;;   (if (and ftw-httpd (not restart?)) ftw-httpd
+;;       (begin
+;;         (when ftw-httpd (stop-ftw-http-server! ftw-httpd))
+;;         (set! ftw-httpd (start-ftw-http-server! server-address))))
+;;   ftw-httpd)
 
-(def processes (make-hash-table))
 
-(def (read-process-lines process (setter (lambda (ls) (display ls))))
-  (input-port-timeout-set! process -inf.0)
-  (let rl ((go? #t))
-    (setter (read-all-as-lines process))
-    (when go?
-      (if (not (process-status process 0 #f))
-        (begin (thread-sleep! 1) (rl []))
-        (rl #f)))))
-
-(def (spawn-process fn . args)
-  (def uuid (uuid->string (random-uuid)))
-  (def proc (cons [] #f))
-  (hash-put! processes uuid proc)
-
-  (set-cdr!
-   proc
-   (spawn run-process
-          [fn args ...]
-          coprocess: (cut read-process-lines
-                          <> (lambda (ls) (set-car! proc (append (car proc) ls))))
-          pseudo-terminal: #t))
-  uuid)
-
-(def (thread-properties thread)
-  (def tstate (thread-state thread))
-  (def state (cond ((thread-state-running? tstate) 'running)
-                   ((thread-state-waiting? tstate) 'waiting)
-                   ((thread-state-abnormally-terminated? tstate) 'abnormally-terminated)
-                   ((thread-state-normally-terminated? tstate) 'normally-terminated)))
-  (def result (case state
-                ((running) #t)
-                ((waiting) (thread-state-waiting-for tstate))
-                ((abnormally-terminated)
-                 (with-output-to-string
-                   "" (cut display-exception (thread-state-abnormally-terminated-reason tstate)
-                                         (current-output-port))))
-                ((normally-terminataed) (thread-state-normally-terminated-result tstate))))
-  [["state" . state]
-   ["result" . result]])
-
-(def (uuid->process-properties uuid)
-  (def proc (hash-get processes uuid))
-  (match proc
-    ([stdout . thread]
-     (let ((threadp (thread-properties thread)))
-       [["uuid" . uuid]
-        ["thread" (list->hash-table threadp) ...]
-        ["output" . stdout]]))))
-
-(def (json<-process-properties uuid)
-  (with-output-to-string "" (cut write-json (list->hash-table (uuid->process-properties uuid)))))
 
 (def (random-tags)
   (def tags  [["foo" "bar" "send" "rps"]
@@ -180,16 +133,17 @@
 (def (http-request-body-json*)
   (with-input-from-u8vector (http-request-body*) read-json))
 
-(define-endpoint list-identities "list-identities")
+;(define-endpoint list-identities "list-identities")
 
-(def (list-identities/GET)
-  (respond/json (json<-glow-find-identities)))
+;(def (list-identities/GET)
+ ; (respond/json (json<-glow-find-identities)))
 
 (define-endpoint default list priority: +inf.0)
+
 (def (default/GET req)
   (respond/json (json<-glow-homepage)))
 
-(define-json-endpoint transfer "transfer")
+(define-json-endpoint transfer "^/transfer")
 
 (def (transfer/POST)
   (let* ((transfer (http-request-body-json*))
@@ -202,7 +156,7 @@
            "--to" (hash-get to 'name)
            "--from" (hash-get from 'name)
            "--value" amount
-           "--evm-network" (hash-get net 'symbol)])
+           "--evm-network" (hash-get net 'shortName)])
          (uuid (apply spawn-process cmd))
          (json (json<-process-properties uuid)))
    ; (error (table->list transfer))
