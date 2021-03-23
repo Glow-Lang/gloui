@@ -13,6 +13,7 @@
     "doc/ftw.org"
     "doc/json.org"
     "doc/identities.org"
+    "doc/contacts.org"
     "doc/widgets.org"))
 
 ;; # Use Emacs to tangle the files.

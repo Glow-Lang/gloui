@@ -16,7 +16,7 @@ gxpkg install github.com/drewc/gloui
 Now run the server.
 
 #+begin_src shell
-gxi -e "(import :gloui/gloui)" -e '(start-server!)' -e '(display "started GloUI Server\n")' -
+gxi -e "(import :mukn/gloui/gloui)" -e '(start-server!)' -e '(display "started GloUI Server\n")' -
 #+end_src
 
 With the server running, head over to http://localhost:6741 wait 30 seconds or
@@ -62,6 +62,7 @@ See [[Configuring quasar.conf.js]].
     "doc/ftw.org"
     "doc/json.org"
     "doc/identities.org"
+    "doc/contacts.org"
     "doc/widgets.org"))
 
 ;; # Use Emacs to tangle the files.

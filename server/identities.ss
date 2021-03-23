@@ -1,7 +1,7 @@
 (import :mukn/glow/cli/identities :mukn/ethereum/known-addresses
         :mukn/gloui/server/json  :mukn/ethereum/ethereum
         :mukn/ethereum/testing :std/text/json
-        :clan/poo/mop :clan/poo/brace :clan/poo/object :std/text/json)
+        :clan/poo/mop :clan/poo/brace :clan/poo/object)
 (export #t)
 
 (def (json<-list-identities from: (from #f))

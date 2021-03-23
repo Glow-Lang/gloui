@@ -4,4 +4,5 @@
 (import :std/build-script)
 
 (defbuild-script
-  '("server/ftw" "server/json" "server/identities" "file-server" "gloui"))
+  '("server/ftw" "server/json"
+    "server/identities""server/contacts" "file-server" "gloui"))
