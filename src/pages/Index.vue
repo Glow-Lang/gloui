@@ -227,6 +227,10 @@ import RTS from 'gxjs'
 // RTS.host_function2scm = RTS.function2scm
 window.GXJS = RTS
 
+import Entity from '../assets/Entity.ss'
+
+window.Entity = Entity
+
 const choices = ['Rock', 'Paper', 'Scissors']
 
 const depAddresses =

@@ -12,6 +12,7 @@
     "doc/gerbil.org"
     "doc/ftw.org"
     "doc/process.org"
+    "doc/entity.org"
     "doc/json.org"
     "doc/identities.org"
     "doc/contacts.org"

@@ -1,11 +1,13 @@
 #!/usr/bin/env gxi
 ;; -*- Gerbil -*-
 
-(import :std/build-script)
+(import :std/build-script :std/make :std/gambit-sharp)
 
 (defbuild-script
-  '("server/ftw" "server/json" "server/process"
+  `("entity"
+    "server/ftw" "server/json" "server/process"
     "server/identities" "server/contacts"
     "server/ethereum-networks" "server/erc20"
     "server"
-    "file-server" "gloui"))
+    "file-server" "gloui"
+    "js/entity"))

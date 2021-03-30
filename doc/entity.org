@@ -1,0 +1,333 @@
+#+TITLE: Entity, an objective abstraction used subjectively
+
+There are ~Address~'s, ~Network~'s, ~Token~'s, ~Contact~'s, ~Asset~'s,
+~Currency~'s and the like.
+
+All of those are ~Entity~'s. We need to have an abstraction that works for both
+Javascript and Gerbil.
+
+* Usage
+
+~Entity~'s are a simple way to define an API for "prototype-based objects".
+
+#+begin_src scheme
+(import :mukn/gloui/entity)
+#+end_src
+
+Here's a network.
+
+#+begin_src scheme
+(define-entity
+  (Network
+   @ []
+     name ;; ie. "Ethereum Mainnet"
+     shortName ;; ie: "eth"
+     chain ;; the chain that this network is supporting, e.g. "ETH"
+     description ;; A string describing the network
+     infoURL ;; A URL to look at for more information
+     currency ;; A String for a Symbol (also a string) in the Currency store
+     test ;; a boolean saying if this is not the master for its chain
+     type ;; default "ethereum"
+  )
+  type: "ethereum")
+#+end_src
+
+* Server Side: Glow Entities
+
+This is quite simple. Entities are [[file:POO.org::+TITLE: POO: Prototype Object Orientation for Gerbil][POO]] objects that have to *come<-from* or
+*from<-come* *JSON*.
+
+They have ~.entitySlots~ which are all that *goes->to* or *comes<-from* *JSON*.
+
+#+begin_src scheme :noweb-ref .defEntity
+(.def (Entity @ [])
+  .entitySlots: '()
+  .json<-: (cut json<-entity <> @)
+  .<-json: (cut entity<-json @ <>)
+  .new: (cut .mix <> @))
+
+(def (.new-entity e (obj (.o))) ((.@ e .new) obj))
+(def (.entity-slots e) (.@ e .entitySlots))
+#+end_src
+
+An entity is a *POO* ~type~. We'll define a syntax that prepends the slots so we
+can sub-entity. ~define-entity~ seems like a good choice.
+
+#+begin_src scheme :noweb-ref define-entity
+(def (prependEntitySlotLists x y) (append y x))
+
+(defsyntax (define-entity stx)
+  (syntax-case stx ()
+    ((_ (name self [supers ...] slots ...) defs ...)
+     #'(define-type (name self [supers ... Entity] slots ...)
+         (.entitySlots => prependEntitySlotLists '(slots ...))
+         defs ...))))
+#+end_src
+
+Now from creating an entity at run time, ~.entity~.
+
+#+begin_src scheme :noweb-ref .entity
+(defsyntax (.entity stx)
+  (syntax-case stx ()
+    ((_ name slots ...)
+     #'(.o (:: @ name) slots ...))))
+#+end_src
+
+
+Now, an entity, regardless of the slots being unbound, must return a *JSON* with
+the slots exactly as declared.
+
+We get our *JSON* from an ~alist~, while any error finding the slot value
+becomes ~#!void~, which becomes ~null~ in *JSON*.
+
+#+begin_src scheme :noweb-ref .entity-alist
+(def (.entity-alist e (entity-type e))
+  (map (lambda (slot) (cons slot (try (.ref e slot) (catch (e) #!void))))
+                  (.@ entity-type .entitySlots)))
+#+end_src
+
+#+begin_src scheme :noweb-ref json<-entity
+(def (json<-entity e (t e))
+  (call-with-output-string
+   (cut write-json-alist (.entity-alist e t) <>)))
+#+end_src
+
+To get an entity from *JSON* the entity-type is required.
+
+#+begin_src scheme :noweb-ref entity<-json
+(def (entity<-json entity-type json)
+  (def js (cond ((hash-table? json) json)
+                ((string? json)
+                 (with-input-from-string json (cut read-json)))
+                (else (error "Not JSON:" json))))
+  (def no (gensym))
+  (def (jsref js ref)
+    (let ((obj (hash-ref js ref no)))
+      (if (not (eq? no obj)) obj
+          (hash-ref js (symbol->string ref) #!void))))
+
+  (.mix (object<-alist (map (lambda (s) (cons s (jsref js s)))
+                            (.entity-slots entity-type)))
+        entity-type))
+#+end_src
+
+
+#+begin_src scheme :tangle ../entity.ss :noweb yes
+(import :clan/poo/mop :clan/poo/object :clan/poo/brace
+        :std/text/json :std/sugar #;(for-syntax :std/gambit-sharp))
+(export #t)
+;; (declare (extended-bindings))
+;; (include "~~lib/_gambit#.scm")
+
+;; (macro-case-target
+;;  ((js) (import :js))
+;;  (else
+
+<<json<-entity>>
+
+<<entity<-json>>
+
+<<.defEntity>>
+
+<<define-entity>>
+
+<<.entity>>
+
+<<.entity-alist>>
+;;))
+
+#+end_src
+
+* Client side: Javascript Entity
+
+** Gerbil side
+
+Macros are stored in ~/js/entity.ss~
+
+#+begin_src scheme :tangle ../js/entity.ss :noweb yes :mkdirp yes
+(import :js)
+(export #t define-entity)
+(defsyntax (define-entity stx)
+  (syntax-case stx ()
+    ((macro (name self [supers ...] slots ...) defs ...)
+     (let ((nm (syntax->datum #'name)))
+       (with-syntax
+           ((namestr (datum->syntax #'macro (symbol->string nm)))
+            (namedef
+             (datum->syntax
+                 #'macro
+               (string-append
+                "const sup = (@1@);"
+                "function " (symbol->string nm)
+                " () { return sup.call(this, ...arguments) };"
+                "const jso = (@2@); const slots = (@3@); const initJso = {};"
+                "const pred = s => Object.keys(jso).includes(s);"
+                "slots.forEach(s => { initJso[s] = (pred(s)) ? jso[s] : null });"
+                                        ; "window.testEntity = { jso, slots }"
+                "sup.create(" (symbol->string nm) ", initJso);"))))
+
+       #'(begin
+           (def name
+             (let* ((sups (list supers ...))
+                    (super
+                     (cond ((null? sups) (js#js->foreign
+                                          (js#expr "Entity")))
+                           ((null? (cdr sups)) (car sups))
+                           (else (let* ((mixsup (car sups)))
+                                   (js#js->foreign
+                                    (js#expr "((e, sups) => { return e.mix(...sups) })(@1@, @2@);"
+                                             (js#scm->js mixsup)
+                                             (js#scm->js sups)))))))
+                    (jso (js#jso defs ...))
+                    (sloties (map symbol->string '(slots ...))))
+               (js#stmt namedef
+                        (js#foreign->js super)
+                        (js#scm->js jso)
+                        (js#scm->js sloties))
+               (js#js->foreign (js#expr namestr))))))))))
+#+end_src
+
+#+begin_src scheme :noweb yes :tangle ../src/assets/Entity.ss
+(import :mukn/gloui/js/entity :js)
+
+
+(js#decl #<<EOF
+<<Entity>>
+
+<<$entity>>
+
+<<createEntity>>
+
+<<protocreate>>
+
+<<mixEntites>>
+
+<<entityJSON>>
+
+EOF
+)
+
+(define-entity
+  (Network
+   @ []
+     name ;; ie. "Ethereum Mainnet"
+     shortName ;; ie: "eth"
+     chain ;; the chain that this network is supporting, e.g. "ETH"
+     description ;; A string describing the network
+     infoURL ;; A URL to look at for more information
+     currency ;; A String for a Symbol (also a string) in the Currency store
+     test ;; a boolean saying if this is not the master for its chain
+     type ;; default "ethereum"
+  )
+  type: "ethereum")
+
+(define-entity (Foo @ [] slots))
+
+(js#stmt "window.Bar = (@1@);  module.exports = Entity; window.Network = (@2@)"
+         Foo (js#foreign->js Network))
+
+
+#+end_src
+
+** Constructor and prototype
+
+An ~Entity~ is a javascript constructor function AKA class AKA super-prototype.
+
+#+begin_src javascript :noweb-ref Entity
+function Entity (obj = {}) {
+  this.$entity.self = this;
+  Object.assign(this, obj);
+};
+#+end_src
+
+If you notice, the constructor relies on a ~$entity~ property. This is a
+function that creates a new object based on ~this~ and ~this.$entity.slots~.
+
+#+begin_src javascript :noweb-ref $entity
+Entity.prototype.$entity = function () {
+  const obj = Object.create(null);
+  this.$entity.slots.forEach(slot => {
+    const slotValue = this[slot]
+    obj[slot] = (slotValue === undefined) ? null : slotValue
+  })
+    return obj;
+}
+Entity.prototype.$entity.slots = []
+Entity.prototype.$entity.initSlots = {}
+Entity.prototype.$entity.self = null
+#+end_src
+
+To ~createEntity~ we need a constructor that must have slots. These can be
+declared using an array of keys, in which case the default value is null, or an
+object, in which case the keys and values are as in the object.
+
+We'll make the prototype an ~Entity.prototype~ but make it declarable as well.
+
+#+begin_src javascript :noweb-ref createEntity
+function createEntity (fn, slots = {}, proto = Entity.prototype) {
+  const entitySlots = (slots instanceof Array) ? slots : Object.keys(slots);
+  const parentSlots = proto.$entity.slots
+  const entityInit = (() => {
+    if (slots instanceof Array) {
+      const obj = {}
+      slots.forEach(k => { obj[k] = proto[k] === undefined ? null : proto[k] })
+      return obj
+    } else {
+      return slots;
+    }
+  })();
+
+  fn.prototype = Object.create(proto)
+  fn.prototype.$entity = function () { return proto.$entity.call(this) };
+  Object.assign(fn.prototype.$entity, proto.$entity)
+  fn.prototype.$entity.slots = [...new Set([...entitySlots, ...parentSlots])]
+  fn.prototype.$entity.initSlots = { ...proto.$entity.initSlots,  ...entityInit }
+  Object.defineProperty(
+    fn.prototype.$entity, 'JSON',
+    Object.getOwnPropertyDescriptor(
+      Entity.prototype.$entity, 'JSON'));
+
+  fn.create = fn.prototype.create
+
+  for (const [key, value] of Object.entries(entityInit)) {
+    Object.defineProperty(fn.prototype, key, {
+      value: value,
+      writable: true, configurable: true})
+  }
+  return fn;
+};
+#+end_src
+
+Now we make it a part of the prototype and the entity.
+
+#+begin_src javascript :noweb-ref protocreate
+Entity.prototype.create = function (fn, slots = {}, proto = false) {
+  const eproto = (proto) ? proto : this.prototype;
+  return createEntity(fn, slots, eproto)
+}
+
+Entity.create = Entity.prototype.create;
+#+end_src
+
+Now a way to "mix" entites AKA multiple subclass inheritance.
+#+begin_src javascript :noweb-ref mixEntites
+Entity.prototype.mix = function () {
+  entities = [...arguments];
+  const obj = entities[0]
+  function mix () { obj.call(this, ...arguments)};
+  const superE = (entities.length > 1) ?
+        this.mixEntities(...entities.slice(1)) : Entity
+  return superE.create(mix, obj.prototype.$entity.initSlots);
+}
+Entity.mix = Entity.prototype.mix;
+#+end_src
+
+And a ~JSON~ property which converts the entity into JSON.
+#+begin_src javascript :noweb-ref entityJSON
+Object.defineProperty(Entity.prototype.$entity, 'JSON', {
+  get() {
+    return JSON.stringify(this.call(this.self))
+  },
+  enumerable: false
+})
+#+end_src
