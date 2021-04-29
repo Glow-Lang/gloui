@@ -5,13 +5,13 @@
 
 (def (distinct-evm-networks)
   (def dnws (make-hash-table))
-  (filter-map (match <>
+  (reverse (filter-map (match <>
                  ([_ . o]
                   (let ((n (.@ o network)))
                     (if (hash-ref dnws n #f)
                       #f
                       (begin (hash-put! dnws n #t) o)))))
-               (hash->list ethereum-networks)))
+               (hash->list ethereum-networks))))
 
 (def (json<-list-evm-networks)
   (def nws (map (lambda (o)

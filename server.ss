@@ -9,6 +9,7 @@
         :mukn/gloui/server/process
         :mukn/gloui/server/identities
         :mukn/gloui/server/contacts
+        :mukn/gloui/server/ethereum
         :mukn/gloui/server/ethereum-networks
         :mukn/gloui/server/erc20)
 
