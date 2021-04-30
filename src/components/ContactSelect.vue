@@ -4,7 +4,6 @@
     v-model="value"
     @input="$emit('input', $event)"
     :options="contacts"
-    option-value="id"
     option-label="name"
     use-input
     emit-value

@@ -31,7 +31,18 @@
   (def faucet (make-transfer "pet" croesus drewc "5")))
 
 #;(def alice { address: "0x94314828752f41550F8E40d3C454747A1EDD0eA3"
-             key: "0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb"})
+             key: "
+
+0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb
+
+"})
+ (extern (display-exception display-exception))
+
+(def (with-JSON-catch thunk)
+  (try (thunk)
+       (catch (e)
+         (let ((str (with-output-to-string "" (cut display-exception e))))
+           (respond/JSON code: 500 str)))))
 
 (def (ensure-address ?) (if (not (string? ?)) ? (parse-address ?)))
 
@@ -44,10 +55,12 @@
 (define-json-endpoint address-from-identity "/eth/address-from-identity")
 
 (def (address-from-identity/POST)
-  (def id (http-request-body-json*))
-  (def pk (ref id 'key))
-  (def 0x (0x<-address (address<-private-key pk)))
-  (respond/JSON 0x))
+  (def (giver)
+    (def id (http-request-body-json*))
+    (def pk (ref id 'key))
+    (def 0x (0x<-address (address<-private-key pk)))
+    (respond/JSON 0x))
+  (with-JSON-catch giver))
 
 (def baz #f)
 (def (make-transfer net from to amount)
