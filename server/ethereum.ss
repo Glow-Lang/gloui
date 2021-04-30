@@ -3,40 +3,77 @@
          :mukn/gloui/server/ftw (only-in :gerbil/gambit open-string))
 (export #t)
 (import :mukn/ethereum/cli :mukn/ethereum/ethereum
+        :mukn/ethereum/assets
+        :mukn/ethereum/pet-contracts
         :mukn/ethereum/testing :mukn/ethereum/json-rpc
-        :mukn/ethereum/network-config :mukn/ethereum/types
+        :mukn/ethereum/network-config
+        :mukn/ethereum/types
         :clan/persist/db :clan/poo/object
         :mukn/ethereum/known-addresses
         :mukn/glow/cli/identities
         :clan/poo/brace
         :mukn/gloui/server/json :std/text/json :clan/decimal
         :gerbil/gambit/threads
-        :std/misc/uuid)
+        :std/misc/uuid :clan/crypto/secp256k1 :std/text/hex
+        :clan/poo/io
+        )
 
-(begin
+#;(begin
   (register-test-keys)
   (def drewc "0x72Ab1A268DeD7fE3c6cA81caFF268E41796Ed1E9")
   (def alice "0x94314828752f41550F8E40d3C454747A1EDD0eA3")
   (def croesus "0x25c0bb1A5203AF87869951AEf7cF3FEdD8E330fC"
-    #;(address<-nickname "t/croesus"))
+    ;; (address<-nickname "t/croesus")
+    )
 
   (def trans (make-transfer "pet" drewc alice "0.42"))
   (def inval (make-transfer "pet" drewc alice "100.42"))
   (def faucet (make-transfer "pet" croesus drewc "5")))
 
+#;(def alice { address: "0x94314828752f41550F8E40d3C454747A1EDD0eA3"
+             key: "0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb"})
 
 (def (ensure-address ?) (if (not (string? ?)) ? (parse-address ?)))
 
+(def (keypair<-private-key 0x)
+  (keypair<-secret-key (<-string Bytes32 0x)))
 
+(def (address<-private-key 0x)
+  (keypair-address (keypair<-private-key 0x)))
+
+(define-json-endpoint address-from-identity "/eth/address-from-identity")
+
+(def (address-from-identity/POST)
+  (def id (http-request-body-json*))
+  (def pk (ref id 'key))
+  (def 0x (0x<-address (address<-private-key pk)))
+  (respond/JSON 0x))
+
+(def baz #f)
 (def (make-transfer net from to amount)
   (set! to (ensure-address to))
-  (set! from (ensure-address from))
+  (def fromName
+    (if (hash-table? from)
+      (ref from 'name)))
+
+
+
   (set! amount (if (number? amount)
                  (number->string amount)
                  amount))
   (def currency (.@ (ethereum-config) nativeCurrency))
   (def value (parse-currency-value amount currency))
+
+  (if (hash-table? from)
+    (begin
+      (let ((kp (keypair<-private-key (ref from 'key))))
+        (call-with-identities
+         (cut hash-put! <> (string-downcase fromName) kp))
+        (set! from (ref from 'address)))))
+  (set! from (ensure-address from))
+  (set! baz fromName)
   { net to from amount currency value
+    fromName
     openBalance: #f
     closeBalance: #f
     process: #f
@@ -61,7 +98,8 @@
 
 (def (start-transfer-process! tran out err)
   (def (proc out err)
-      (cli-send-tx tran confirmations: 0))
+    (cli-send-tx tran confirmations: 0)
+    (unregister-keypair (string-downcase (.@ tran fromName))))
   (let ((thread (thread-start! (make-thread (cut proc out err)))))
     (set! (.@ tran process) { out err thread })
     tran))
@@ -127,9 +165,10 @@
     (set! (.@ tran errorString) reason)
     tran)
   (def (proc)
-    (if (not (valid-transfer? tran))
-      (invalid-transfer "From account does not have enough")
-      (start-transfer-process! tran out err)))
+    (begin0
+        (if (not (valid-transfer? tran))
+          (invalid-transfer "From account does not have enough")
+          (start-transfer-process! tran out err))))
 
     (parameterize ((current-output-port out)
                    (current-error-port err))
@@ -165,6 +204,7 @@
   (def net (ref trans 'from 'resource 'network))
   (def from (ref trans 'from 'resource 'path))
   (def to (ref trans 'to 'resource 'path))
+  (if (hash-table? to) (set! to (ref to 'address)))
   (def amount (ref trans 'amount))
   (with-network net (cut make-transfer net from to amount)))
 
@@ -223,8 +263,9 @@
 
 (def foo #f)
 (def (eth-transfer/POST)
-  (ensure-db-connection "userdb")
+  (ensure-db-connection "Live")
   (load-identities)
+  (register-test-keys)
   (def jbody (http-request-body-json*))
   (def tranny (make-transaction-from-POST jbody))
   (hash-put! transactions (.@ tranny id) tranny)

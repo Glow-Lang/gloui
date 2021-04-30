@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          Gloui: DApps wth cryptocurrency blockchains
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div>Gloui: 0.3.1 </div>
       </q-toolbar>
     </q-header>
 
@@ -41,31 +41,11 @@
     </q-drawer>
 
     <q-page-container>
-      <transfer-asset />
       <router-view />
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-          <asset  :value="asset" @input="asset = $event" />
-          <hr/>
-          <resource-select />
-          <contact  :value="contact" @input="contact = $event" />
-          {{ contact }}
 
-
-          <contact-select  :value="assetContact" @input="Assetcontact = $event" />
-
-          {{ assetContact }}
-          <resource  :value="resource" @input="resource = $event" />
-
-          {{ resource }}
-
-
-          <network :value="network" @input="network = $event"/>
-
-
-      <!-- <gerbil-repl /> -->
+      <div style="display: none">
+        <gerbil-repl />
+      </div>
     </q-page-container>
   </q-layout>
 </template>
@@ -74,85 +54,57 @@
 import 'gambit-loader!../../public/foo.scm'
 import EssentialLink from 'components/EssentialLink.vue'
 import GerbilRepl from 'components/GerbilREPL.vue'
-import Network from 'components/Network.vue'
-import Resource from 'components/Resource.vue'
-import ResourceSelect from 'components/ResourceSelect.vue'
-import Asset from 'components/Asset.vue'
-import Contact from 'components/Contact.vue'
-import ContactSelect from 'components/ContactSelect.vue'
 
-import TransferAsset from 'components/TransferAsset.vue'
 import { openDB, deleteDB, wrap, unwrap } from 'idb';
 
 import 'gambit-loader!../../public/bar.scm'
-import  { listNetworks }  from 'gambit-loader!../../public/glowdb.scm'
+import  { listNetworks, addNetworks }  from 'gambit-loader!../../public/glowdb.scm'
+
 
 
 globalThis.openDB = openDB;
 globalThis.deleteDB = deleteDB;
 
 globalThis.listNetworks = listNetworks;
+
 const linksData = [
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
+    title: 'Glow Homepage',
+    caption: 'glow-lang.org',
     icon: 'school',
-    link: 'https://quasar.dev'
+    link: 'https://glow-lang.org/'
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
+    title: 'Glow Documentation',
+    caption: 'gitlab code',
     icon: 'code',
-    link: 'https://github.com/quasarframework'
+    link: 'https://glow-lang.org/#Takemetothecode'
   },
   {
     title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
+    caption: 'invitation',
     icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+    link: 'https://discord.gg/pPMcqD6hWz'
   }
-];
+]
 
 export default {
   name: 'MainLayout',
   components: {
     EssentialLink,
-    // GerbilRepl,
-    Network,
-    Resource,
-    Contact,
-    ContactSelect,
-    Asset,
-    ResourceSelect,
-    TransferAsset
+    GerbilRepl
   },
-  mounted: function () {
+  created: function () {
     $glowdbPromise.then(() => {
-      listNetworks().then(l => this.networks = l)
+      const nws = addNetworks()
+      console.log("Added networks", nws)
+      Promise.all(nws).then(() => {
+        listNetworks().then(l => {
+          this.networks = l
+          console.log("Listed Networks", l)
+
+        })
+      })
     })
   },
   data () {

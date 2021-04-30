@@ -132,9 +132,9 @@ module.exports = function (/* ctx */) {
       workboxPluginMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
       manifest: {
-        name: `PooDB`,
-        short_name: `PooDB`,
-        description: `PooDB, A Prototype-Object-Oriented Database`,
+        name: `Gloui`,
+        short_name: `Gloui`,
+        description: `Gloui, DApps wth cryptocurrency blockchains`,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
