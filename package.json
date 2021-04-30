@@ -1,7 +1,7 @@
 {
   "name": "gloui",
   "version": "0.0.1",
-  "description": "A User Interface for Glow dapps on Blockchains",
+  "description": "GloUI: Decentralized Applications across Blockchains",
   "productName": "GloUI",
   "author": "Drew Crampsie <me@drewc.ca>",
   "private": true,

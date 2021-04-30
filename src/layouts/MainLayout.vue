@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title>
-          Gloui: DApps wth cryptocurrency blockchains
+          GloUI: Decentralized Applications across Blockchains
         </q-toolbar-title>
 
-        <div>Gloui: 0.3.1 </div>
+        <div>Gloui: 0.4.0 </div>
       </q-toolbar>
     </q-header>
 
