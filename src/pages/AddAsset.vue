@@ -8,7 +8,7 @@
   </div>
   <asset  :value="asset" @input="asset = $event" style="min-width: 80vw" />
 
-  {{ asset }}
+  <!-- {{ asset }} -->
 </div>
 </template>
 

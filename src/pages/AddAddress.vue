@@ -44,25 +44,24 @@
         <q-btn flat color="primary" @click="addAnother">
           Add Another Address
         </q-btn>
-        <q-btn flat color="primary">
-          View Rolodex
+        <q-btn flat color="primary" to="/AddContact">
+          Add a Contact
         </q-btn>
-        <q-btn flat color="primary">
-          Transfer
+        <q-btn flat color="primary" to="/AssetTransfer">
+          Transfer some Assets
         </q-btn>
       </q-card-actions>
     </q-card>
-    {{ newAddress }}
   </template>
   <template v-else>
   <div class="row">
     <div class="col">
       <q-card class="q-px-lg q-pb-lg block q-mx-md" >
-        <q-input v-model="address.number" label="Number" style="min-width: 15em;"
-                 hint="The number in '0x...' format. Optional if providing a secret" />
+        <q-input v-model="address.number" label="Ethereum Address" style="min-width: 15em;"
+                 hint="The number in '0x...' format. Optional if providing a secret key" />
         <q-input v-model="address.secret" type="password"
                  label="Secret" style="min-width: 15em;"
-                 hint="The secret in '0x...' format. If provided will generate the number."
+                 hint="The secret key in '0x...' format. If provided will generate the number."
                  @blur="findNumber"/>
         <q-input v-model="address.label" label="Label"
                  hint="Optional, but recommended: A simple way to label it"/>

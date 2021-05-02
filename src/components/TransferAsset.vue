@@ -1,5 +1,9 @@
 <template>
-  <div>
+<div class="full-width">
+
+  <div v-if="err" class="q-pa-lg text-red">
+    {{ err }}
+  </div>
   <div class="row">
     <div class="col-6">
       <h5> From: </h5>
@@ -12,22 +16,42 @@
       </div>
   </div>
   <div
-       v-if="to && from" style="height:100%">
-    <div class="row rounded-borders"
-         style="border: 1px solid lightgrey; margin:0.5em; padding: 0.5em" v-for="(ass, key) in assets"
-       v-bind:key="ass.id">
-      <div class="col" style="height:100%" >
-        <asset-select style="height:100%;overflow:hidden; text-overflow: elipsis;" v-model="ass.from" :ownerID="from" label="From this Asset"/>
+       v-if="from" style="height:100%">
+    <div
+         v-for="(ass, key) in assets"
+      v-bind:key="ass.id">
+      <div class="row rounded-borders q-ma-sm">
+        <div class="col-6" style="height:100%" >
+          <asset-select
+            style="height:100%;overflow:hidden; text-overflow: elipsis;"
+            v-model="ass.from"
+            :ownerID="from.id"
+            label="From this Address"
+            mustHaveSecret
+            />
+        </div>
+
+        <div class="col-6">
+          <asset-select v-if="to" v-model="ass.to" :ownerID="to.id" label="To this Address"
+                        style="height:100%;"/>
+        </div>
       </div>
-      <div class="col-2">
-        <q-input outlined v-model="ass.amount" label="Send Amount" />
+      <div class="row rounded-borders">
+      <div class="col q-mx-sm">
+        <q-input outlined filled v-model="ass.amount" label="Send Amount" />
+      </div>
+
+      <div class="col">
+        <network :value="ass.network" @input="ass.network = $event" />
+      </div>
+
+
+      </div>
+      <div class="q-mt-sm text-center full-width">
         <q-btn v-if="key > 0" icon="remove_circle" class="text-orange"
                label="Remove Asset Transfer" @click="removeAsset(ass)"/>
       </div>
-      <div class="col">
-        <asset-select v-if="to" v-model="ass.to" :ownerID="to" label="To this Asset"
-                     style="height:100%;  overflow:hidden; text-overflow: elipsis;"/>
-      </div>
+
   </div>
     <div class="row items-center" v-if="validTransfer()"
          style="height:100%"  >
@@ -43,7 +67,7 @@
   </div>
     <div class="q-pa-md q-gutter-sm">
 
-      {{ transaction }}
+      <!-- {{ transaction }} -->
 
     <q-dialog v-model="showProc" persistent>
       <q-layout view="Lhh lpR fff" container class="bg-white">
@@ -69,11 +93,10 @@
           <q-page padding>
             <h5 v-if="transaction.state !== 'finished'">
               Transfering from {{ transaction.remaining }} assets.</h5>
-
             <q-list v-for="xfer in transaction.transfers" :key="xfer.id">
               <q-item v-if="!!xfer.state">
-                <q-card style="padding: 1em;" :class="xfer.error ? 'bg-red-2' : ''">
-                  <big v-if="xfer.error"> ERROR: {{xfer.error}}</big>
+                <q-card style="padding: 1em;" :class="xfer.state === 'error' ? 'bg-red-2' : ''">
+                  <big v-if="xfer.state === 'error'"> ERROR: {{xfer.errorMessage}}</big>
                   {{ xfer.currency }} {{xfer.amount}}
                   <br>from {{ xfer.from }}
                   <br> to {{ xfer.to }}
@@ -119,12 +142,13 @@
 import ContactSelect from 'components/ContactSelect.vue'
 import AssetSelect from 'components/AssetSelect.vue'
 
+import Network from 'components/Network.vue'
 import axios from 'axios'
 
 
 export default {
   name: 'TransferAsset',
-  components: { ContactSelect, AssetSelect },
+  components: { ContactSelect, AssetSelect, Network },
   methods: {
     validTransfer() {
       function isValid(ass) {
@@ -134,7 +158,7 @@ export default {
 
     },
     addAsset() {
-      this.assets.push({ from: null, to: null, amount: null  } )
+      this.assets.push({ from: null, to: null, amount: null, network: null } )
       console.log('Assets:', this.assets)
     },
     removeAsset(ass) {
@@ -143,9 +167,11 @@ export default {
       this.$forceUpdate()
     },
     performTransaction() {
-      console.log(this.assets.slice())
+      this.err = false;
 
       const trans = { id: randomUUID(), assets: this.assets.slice() }
+
+      console.warn('Here is the transaction:', trans)
 
       axios.post($glowServer+"/eth/transfer", trans)
 
@@ -154,6 +180,11 @@ export default {
           this.transaction = r.data
           this.showProc = true
           this.update = setTimeout(() => { this.updateTransaction() }, 500)
+        })
+        .catch(e => {
+          console.error('Caught an error', e.response);
+
+          this.err = e.response.data
         })
     },
     updateTransaction () {
@@ -176,6 +207,10 @@ export default {
             clearTimeout(this.update)
           }
         })
+        .catch(e => {
+          console.error(e.result);
+          this.err = e.result.data
+        })
 
     }
 
@@ -185,11 +220,12 @@ export default {
       from: null,
       to: null,
       transfers: [],
-      assets: [ { from: null, to: null, amount: null } ],
+      assets: [ { from: null, to: null, amount: null, network: null} ],
       transaction: false,
       showProc: false,
       allowClose: false,
-      update: false
+      update: false,
+      err: false
     }
   }
 }

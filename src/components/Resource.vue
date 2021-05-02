@@ -139,9 +139,7 @@
         </q-page-container>
       </q-layout>
     </q-dialog>
-
-
-    {{ value }}
+    <!-- {{ value }} -->
   </div>
 </template>
 

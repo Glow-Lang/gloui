@@ -8,7 +8,7 @@
     option-label="description"
     emit-value
     map-options
-    label="Network"
+    label="On this Network"
     color="teal"
     clearable
     options-selected-class="text-deep-orange"

@@ -1,33 +1,59 @@
 <template>
-  <q-select
-    filled
-    v-model="value"
-    @input="$emit('input', $event)"
-    :options="assets"
-    use-input
-    emit-value
-    map-options
-    :label="label"
-    color="teal"
-    clearable
-    options-selected-class="text-deep-orange"
+<q-select
+  style="height:100%"
+  filled
+  v-model="value"
+  @input="$emit('input', $event)"
+  :options="assets"
+  use-input
+  emit-value
+  map-options
+  :label="label"
+  color="teal"
+  clearable
+  options-selected-class="text-deep-orange"
     @filter="filterFN"
     >
     <template v-slot:option="scope">
       <q-item
+        style="height:100%"
         v-bind="scope.itemProps"
         v-on="scope.itemEvents"
         >
+        <q-item-section side v-if="scope.opt.address.secret">
+          <q-icon name="enhanced_encryption" />
+        </q-item-section>
         <span v-if="!ownerID"> Owner: {{ scope.opt.owner.name }} </span>
-        <br/>
-
-          <resource-item v-model="scope.opt.resource" class="text-center"/>
+        <q-item-section>
+          {{ scope.opt.address.label}}
+        <q-item-label>
+          <small class="text-grey text-bold">{{ scope.opt.address.number }}</small>
+        </q-item-label>
+        </q-item-section>
       </q-item>
     </template>
+
     <template v-slot:selected>
-      <resource-item v-if="value" :value="value.resource" />
+      <q-item v-if="value"
+
+              style="height:100%"
+              >
+        <q-item-section top side v-if="value.address.secret">
+          <q-icon name="enhanced_encryption" />
+        </q-item-section>
+         <span v-if="!ownerID"> Owner: {{ value.owner.name }} </span>
+        <q-item-section top >
+          {{ value.address.label}}
+          <br/>
+        <q-item-label >
+          <small class="text-grey text-bold">{{ value.address.number }}</small>
+        </q-item-label>
+        </q-item-section>
+       </q-item>
+      <!-- {{ value  }} -->
+      <!-- id: {{ ownerID }} -->
       &nbsp;
-      <!-- {{ ownerID }} -->
+       <!-- {{ AllAssets }} -->
     </template>
   </q-select>
 
@@ -38,10 +64,11 @@
 import  { listAssetEntities }  from 'gambit-loader!../../public/glowdb.scm'
 import ResourceItem from 'components/ResourceItem.vue'
 export default {
-  components: { ResourceItem },
+  //components: { ResourceItem },
   props: {
     filterFn: {  default: (a) => a, type: Function },
     ownerID: { default: null },
+    mustHaveSecret: { default: false, type: Boolean },
     label: { default: "Asset", type: String }
   },
   created: function () {
@@ -55,16 +82,29 @@ export default {
       update(() => {
         const needle = val.toLowerCase()
         const fn = (typeof this.filterFn === 'function') ? this.filterFn : (a) => a;
-        this.assets = fn(this.AllAssets).filter(ass => {
-          if (!!this.ownerID) return this.ownerID === ass.owner.id;
-          if (needle === '') return ass;
-          const name =  ass.resource.name;
-          const desc = ass.resource.description;
-          const pred = (s) => s !== null && s.toLowerCase().indexOf(needle) > -1;
+        this.assets = this.AllAssets
+        console.log("Assets:", this.assets)
 
-          return ( pred(name) || pred(desc) )
-        })
-      })
+        if (this.mustHaveSecret) {
+          this.assets = this.assets.filter(a => typeof a.address.secret === 'string')
+        }
+
+        if (!!this.ownerID) {
+          this.assets = this.assets.filter(a => a.owner.id === this.ownerID)
+        }
+
+        this.assets = this.assets.sort ((a, b) => a.address.label < b.address.label);
+        return true;
+        // this.assets = fn(this.AllAssets).filter(ass => {
+      //     if (!!this.ownerID) return this.ownerID === ass.owner.id;
+      //     if (needle === '') return ass;
+      //     const name =  ass.resource.name;
+      //     const desc = ass.resource.description;
+      //     const pred = (s) => s !== null && s.toLowerCase().indexOf(needle) > -1;
+
+      //     return ( pred(name) || pred(desc) )
+      //   })
+       })
     }
   },
   data () {

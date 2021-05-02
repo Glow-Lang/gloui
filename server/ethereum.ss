@@ -15,7 +15,7 @@
         :mukn/gloui/server/json :std/text/json :clan/decimal
         :gerbil/gambit/threads
         :std/misc/uuid :clan/crypto/secp256k1 :std/text/hex
-        :clan/poo/io
+        :clan/poo/io :std/logger
         )
 
 #;(begin
@@ -42,6 +42,7 @@
   (try (thunk)
        (catch (e)
          (let ((str (with-output-to-string "" (cut display-exception e))))
+           (debug str)
            (respond/JSON code: 500 str)))))
 
 (def (ensure-address ?) (if (not (string? ?)) ? (parse-address ?)))
@@ -51,6 +52,9 @@
 
 (def (address<-private-key 0x)
   (keypair-address (keypair<-private-key 0x)))
+
+(def (string<-secret-key k)
+  (hex-encode (secp256k1-seckey-data k)))
 
 (define-json-endpoint address-from-identity "/eth/address-from-identity")
 
@@ -63,36 +67,40 @@
   (with-JSON-catch giver))
 
 (def baz #f)
+
 (def (make-transfer net from to amount)
+  (def fromTable from)
+  (def fromName (ref from 'owner 'name))
+  (def sec (try (ref from 'address 'secret)
+                (catch (e) (error "From: Address does not have a secret key"))))
+  (def from0x (try (ref from 'address 'number)
+                   (catch (e) (error "From: Address does not have a number"))))
+
+  (def keypair (keypair<-private-key sec))
+
+  (set! from (ensure-address from0x))
+
   (set! to (ensure-address to))
-  (def fromName
-    (if (hash-table? from)
-      (ref from 'name)))
-
-
-
   (set! amount (if (number? amount)
                  (number->string amount)
                  amount))
   (def currency (.@ (ethereum-config) nativeCurrency))
   (def value (parse-currency-value amount currency))
 
-  (if (hash-table? from)
-    (begin
-      (let ((kp (keypair<-private-key (ref from 'key))))
-        (call-with-identities
-         (cut hash-put! <> (string-downcase fromName) kp))
-        (set! from (ref from 'address)))))
-  (set! from (ensure-address from))
-  (set! baz fromName)
-  { net to from amount currency value
-    fromName
+  { net to from amount currency value fromName
+    wrapper: (lambda (thunk)
+               (register-keypair fromName keypair)
+               (try (thunk)
+                    (finally (unregister-keypair fromName))))
     openBalance: #f
     closeBalance: #f
     process: #f
     outputString: ""
     errorString: ""
     error: #f })
+
+(def (with-transfer t thunk)
+  ((.@ t wrapper) thunk))
 
 (def (transfer-value tran) (.@ tran value))
 
@@ -111,8 +119,9 @@
 
 (def (start-transfer-process! tran out err)
   (def (proc out err)
-    (cli-send-tx tran confirmations: 0)
-    (unregister-keypair (string-downcase (.@ tran fromName))))
+    (with-transfer
+     tran
+     (cut cli-send-tx tran confirmations: 0)))
   (let ((thread (thread-start! (make-thread (cut proc out err)))))
     (set! (.@ tran process) { out err thread })
     tran))
@@ -129,6 +138,8 @@
          ((or (thread-state-abnormally-terminated? t)
               (.@ tran error)) "error")
          (else "unknown"))))))
+
+
 
 (def (transfer-process-output tran)
   (def proc (.@ tran process))
@@ -190,8 +201,25 @@
 (def (json<-transfer tran)
   (def net (.@ tran net))
   (def error (if (equal? (transfer-process-state tran) "error")
-               (transfer-process-error-output tran)
+              #t
                #f))
+
+  (def proc (.@ tran process))
+  (def t (if proc (.@ proc thread) #f))
+
+  (def errorMessage (if (or (not t)
+                            (not (thread-state-abnormally-terminated?
+                             (thread-state t))))
+                      #f
+                      (with-output-to-string
+                        ""
+                        (cut display-exception
+                       (thread-state-abnormally-terminated-reason
+                       (thread-state t))))))
+
+  ; (def ttstate (thread-state transfer-thread))
+
+
   (def openBal (with-network net (cut transfer-open-balance tran)))
   (def closeBal (with-network net (cut transfer-close-balance tran)))
   (with-network net (cut list->hash-table [
@@ -202,6 +230,7 @@
                 ["amount" (.@ tran amount) ...]
                 ["state" (transfer-process-state tran) ...]
                 ["error" error ...]
+                ["errorMessage" errorMessage ...]
                 ["openBalance"
                  (list->hash-table [[ "from" (amount<-value (.@ openBal from)) ...]
                                [ "to" (amount<-value (.@ openBal to)) ...]])
@@ -214,10 +243,26 @@
                 ])))
 
 (def (transfer<-json-POST trans)
-  (def net (ref trans 'from 'resource 'network))
-  (def from (ref trans 'from 'resource 'path))
-  (def to (ref trans 'to 'resource 'path))
-  (if (hash-table? to) (set! to (ref to 'address)))
+  ;; {
+  ;;  "id":"5d0f23de-d758-46ee-8b6b-58dd5fe792df",
+  ;;  "assets":[ {"from":{
+  ;;                      "owner": {"id":"17985a9d-1c29-4a2f-97ae-f01efb9020c6","name":"Thor Therdhal","description":"WCFC!!"},
+  ;;                      "address":{"secret":"0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb",
+  ;;                                 "number":"0x94314828752f41550F8E40d3C454747A1EDD0eA3",
+  ;;                                 "label":"This is working well",
+  ;;                                 "id":"a31fb8d8-ad25-45c9-8f47-970b6b9e95d1"}},
+  ;;              "to":{"owner":{"name":"adzv31tqea","description":"dfqegds","id":"de981cf7-46d5-4f1c-b7c4-a2bec65ab088"},
+  ;;                    "address":{"secret":"0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb",
+  ;;                               "number":"0x94314828752f41550F8E40d3C454747A1EDD0eA3",
+  ;;                               "label":"Test","id":"f1db5d00-119a-44d6-b22e-3b8d57bfaf94"}
+  ;;                    },
+  ;;              "amount":"12",
+  ;;              "network":"pet"}
+  ;;             ]}
+  (def net (ref trans 'network))
+  (def from (ref trans 'from))
+
+  (def to (ref trans 'to 'address 'number))
   (def amount (ref trans 'amount))
   (with-network net (cut make-transfer net from to amount)))
 
@@ -256,10 +301,18 @@
   (if (void? st) "starting" st))
 
 (def (json<-transaction tranny)
+  (def t (.@ tranny thread))
+  (def errorMessage (if (not(thread-state-abnormally-terminated?
+                             (thread-state t)))
+                      #f
+                      (display-exception
+                       (thread-state-abnormally-terminated-reason
+                       (thread-state t)))))
   (list->hash-table
    [ [ "id" (.@ tranny id) ... ]
      [ "transfers" (map json<-transfer (.@ tranny transfers)) ... ]
      [ "state" (transaction-state tranny) ... ]
+     [ "errorMessage" errorMessage ... ]
      [ "remaining" (.@ tranny remaining) ... ]
      ]))
 
@@ -269,22 +322,25 @@
 (define-json-endpoint eth-transfer "/eth/transfer")
 
 (def (eth-transfer/GET)
-  (def id (GET-parameter* "id"))
-  (def tranny (hash-get transactions id))
-  ;(ensure-ethereum-connection "pet")
-  (respond/JSON (and tranny (json<-transaction tranny))))
+  (def (tget)
+    (def id (GET-parameter* "id"))
+    (def tranny (hash-get transactions id))
+    (def jso (and tranny (json<-transaction tranny)))
+    (respond/JSON jso))
 
-(def foo #f)
+  (with-JSON-catch tget))
+
 (def (eth-transfer/POST)
-  (ensure-db-connection "Live")
-  (load-identities)
-  (register-test-keys)
-  (def jbody (http-request-body-json*))
-  (def tranny (make-transaction-from-POST jbody))
-  (hash-put! transactions (.@ tranny id) tranny)
+  (def (tfer)
+    (ensure-db-connection "Live")
+                                        ;  (load-identities)
+                                        ; (register-test-keys)
+    (def jbody (http-request-body-json*))
+    (def tranny (make-transaction-from-POST jbody))
+    (hash-put! transactions (.@ tranny id) tranny)
+    (process-transaction! tranny)
+    (respond/JSON (json<-transaction tranny)))
 
-  (set! foo tranny)
-
-  (process-transaction! tranny)
-
-  (respond/JSON (json<-transaction tranny) ))
+  (with-JSON-catch tfer)
+  ;(tfer)
+  )
