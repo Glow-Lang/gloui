@@ -7,12 +7,21 @@
   <div class="row">
     <div class="col-6">
       <h5> From: </h5>
-        <contact-select v-model="from" />
+      <contact-select
+        v-model="from"
+        ref="fromSelect"
+        @input="popupAddContact($event, 'from')"
+        />
+      <!-- From: {{ from }} -->
 
       </div>
       <div class="col-6">
       <h5> To: </h5>
-        <contact-select v-model="to" />
+      <contact-select
+        v-model="to"
+        ref="toSelect"
+        @input="popupAddContact($event, 'to')"
+        />
       </div>
   </div>
   <div
@@ -21,6 +30,7 @@
          v-for="(ass, key) in assets"
       v-bind:key="ass.id">
       <div class="row rounded-borders q-ma-sm">
+        <!-- {{ ass }} {{ key }} -->
         <div class="col-6" style="height:100%" >
           <asset-select
             style="height:100%;overflow:hidden; text-overflow: elipsis;"
@@ -28,12 +38,19 @@
             :ownerID="from.id"
             label="From this Address"
             mustHaveSecret
+            @input="popupAddAsset($event, key, 'from')"
+            :ref="assetRef('from', key)"
             />
+          <!-- {{ key  }} -->
         </div>
 
         <div class="col-6">
-          <asset-select v-if="to" v-model="ass.to" :ownerID="to.id" label="To this Address"
-                        style="height:100%;"/>
+          <asset-select v-if="to"
+                        v-model="ass.to" :ownerID="to.id" label="To this Address"
+                        style="height:100%;"
+                        @input="popupAddAsset($event, key, 'to')"
+                        :ref="assetRef('to', key)"
+                        />
         </div>
       </div>
       <div class="row rounded-borders">
@@ -133,6 +150,71 @@
         </q-page-container>
       </q-layout>
     </q-dialog>
+
+
+    <q-dialog v-if="editContact" v-model="canEditContact" class="full-width">
+      <q-layout view="Lhh lpR fff" container class="bg-white">
+        <q-header class="bg-primary">
+          <q-toolbar>
+            <q-toolbar-title>
+             Add Addresses to "{{ editContact.name }}"
+            </q-toolbar-title>
+            <q-btn flat v-close-popup  round dense icon="close" />
+          </q-toolbar>
+        </q-header>
+
+        <q-footer class="bg-black text-white">
+          <!-- <q-toolbar inset> -->
+          <!--   <q-toolbar-title> -->
+
+          <!--   <q-btn flat v-close-popup :disable="!allowClose" round dense icon="close" /> -->
+          <!--    </q-toolbar-title> -->
+          <!-- </q-toolbar> -->
+        </q-footer>
+
+        <q-page-container>
+          <q-page padding>
+            <contact :value="editContact" v-bind:contact="editContact"
+                     :showDesc="false" @input="assetAdded" @cancel="cancelAddAsset"/>
+
+          </q-page>
+        </q-page-container>
+      </q-layout>
+    </q-dialog>
+
+    <q-dialog v-if="canAddContact" v-model="canAddContact" class="full-width">
+      <q-layout view="Lhh lpR fff" container class="bg-white">
+        <q-header class="bg-primary">
+          <q-toolbar>
+            <q-toolbar-title>
+             Add New Contact
+            </q-toolbar-title>
+            <q-btn flat v-close-popup  round dense icon="close" />
+          </q-toolbar>
+        </q-header>
+
+        <q-footer class="bg-black text-white">
+          <!-- <q-toolbar inset> -->
+          <!--   <q-toolbar-title> -->
+
+          <!--   <q-btn flat v-close-popup :disable="!allowClose" round dense icon="close" /> -->
+          <!--    </q-toolbar-title> -->
+          <!-- </q-toolbar> -->
+        </q-footer>
+
+        <q-page-container>
+          <q-page padding>
+            <contact :value="addContact" v-bind:contact="addContact"
+                     @input="contactAdded" @cancel="cancelAddContact"
+                     :showAddresses="false"/>
+
+          </q-page>
+        </q-page-container>
+      </q-layout>
+    </q-dialog>
+
+     <!-- {{ assets }} -->
+
   </div>
   </div>
   </div>
@@ -140,16 +222,64 @@
 
 <script>
 import ContactSelect from 'components/ContactSelect.vue'
+import Contact from 'components/Contact.vue'
 import AssetSelect from 'components/AssetSelect.vue'
 
 import Network from 'components/Network.vue'
 import axios from 'axios'
 
+import  { findContact } from 'gambit-loader!../../public/glowdb.scm'
 
 export default {
   name: 'TransferAsset',
-  components: { ContactSelect, AssetSelect, Network },
+  components: { ContactSelect, Contact, AssetSelect, Network },
   methods: {
+    popupAddAsset(e, key, where) {
+      console.log("here, popup?")
+      if (!!e && !!e.edit) {
+      console.log('Editing:', e ,'On Key', key)
+        const id = e.owner.id;
+        findContact(id).then(c => {
+          this.canEditContact = true;
+          this.editContact = c
+          this.editContactKey = key;
+          this.editContactLocation = where;
+          this.editContactRef = this.assetRef(where, key)
+        })
+      }
+    },
+    cancelAddAsset() {
+      this.canEditContact = false;
+      console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+
+    },
+    assetAdded() {
+      this.canEditContact = false;
+      console.log('added asset, reset:', this.assetRef(this.editContactKey))
+      console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+    },
+    popupAddContact(e, where) {
+      if (!!e && !!e.add) {
+        this.canAddContact = true;
+        this.addContactLocation = where
+        this.addContact = { avatar: e.avatar };
+        this.from = this.addContact;
+      }
+    },
+    addContactSelect() {
+      return this.addContactLocation === 'from'
+        ? this.$refs.fromSelect : this.$refs.toSelect
+    },
+    contactAdded(c) {
+      console.log("contact added?")
+      this.canAddContact = false;
+      this.addContactSelect().updateAndSelect(c);
+    },
+    cancelAddContact() {
+      this.addContactSelect().updateAndSelect(null);
+      this.canAddContact = false;
+    },
+    assetRef(loc, key) { return 'asset' + loc + key },
     validTransfer() {
       function isValid(ass) {
         return ass.from && ass.to && ass.amount
@@ -169,6 +299,7 @@ export default {
     performTransaction() {
       this.err = false;
 
+      this.showProc = true
       const trans = { id: randomUUID(), assets: this.assets.slice() }
 
       console.warn('Here is the transaction:', trans)
@@ -178,7 +309,6 @@ export default {
         .then(r => {
           console.log('poty', r)
           this.transaction = r.data
-          this.showProc = true
           this.update = setTimeout(() => { this.updateTransaction() }, 500)
         })
         .catch(e => {
@@ -225,7 +355,14 @@ export default {
       showProc: false,
       allowClose: false,
       update: false,
-      err: false
+      err: false,
+      canEditContact: false,
+      editContact: null,
+      editContactKey: null,
+      editContactLocation: null,
+      canAddContact: false,
+      addContact: null,
+      addContactLocation: null
     }
   }
 }

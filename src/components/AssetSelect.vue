@@ -72,18 +72,24 @@ export default {
     label: { default: "Asset", type: String }
   },
   created: function () {
+    this.updateAssets()
+  },
+  methods: {
+    updateAssets() {
       listAssetEntities().then(l => {
         this.AllAssets = l
       })
-  },
-
-  methods: {
+    },
+    cancel() {
+      this.value = null;
+      this.updateAssets();
+    },
     filterFN(val, update) {
       update(() => {
         const needle = val.toLowerCase()
         const fn = (typeof this.filterFn === 'function') ? this.filterFn : (a) => a;
         this.assets = this.AllAssets
-        console.log("Assets:", this.assets)
+        console.log("Assets:", this.assets, 'ownerID', this.ownerID)
 
         if (this.mustHaveSecret) {
           this.assets = this.assets.filter(a => typeof a.address.secret === 'string')
@@ -94,6 +100,12 @@ export default {
         }
 
         this.assets = this.assets.sort ((a, b) => a.address.label < b.address.label);
+
+        this.assets = [ { owner: { id: this.ownerID },
+                          address: { label: "Edit Contact",
+                                     number: "Add an Address as an Asset" },
+                          edit: true
+                        }, ...this.assets ]
         return true;
         // this.assets = fn(this.AllAssets).filter(ass => {
       //     if (!!this.ownerID) return this.ownerID === ass.owner.id;
