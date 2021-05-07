@@ -15,7 +15,10 @@
        '(("QASCED" "0xcC0bAe359385e28c37550f28D04A5d26D243E1C8"
           "Quality Assurance Specie on Cardano EVM Devnet")
          ("RBTCED" "0xf9c0d1C68BfA06a4c80A32E391e4231E309e772f"
-          "Random Barter Token on Cardano EVM Devnet"))))
+          "Random Barter Token on Cardano EVM Devnet")
+         ;; ("ASS" "0x62Cf950CE51e8f1f8AD8F8a54439c02353d380Fd"
+        ;;  "Alice's Special Specie" )
+         )))
 
 (def (json<-erc20-contracts)
   (with-output-to-string
@@ -59,26 +62,28 @@
   (def erc20-address (address<-0x erc20))
   (def from-address (address<-0x from))
   (def to-address (address<-0x to))
+  (ensure-db-connection "Alice")
+  (ensure-ethereum-connection nw)
+  (def from-balance (erc20-balance erc20-address from-address))
+  (def to-balance (erc20-balance erc20-address to-address))
+  (def stdout [(with-output-to-string
+                 "" (lambda ()
+                      (printf "\nSending ~a tokens from ~a to ~a on ERC20 contract ~a on network ~a...\n"
+                              amount from to erc20 nw)
+         (printf "Balance for ~a on ERC20 contract ~a before: ~a\n"
+                 from sym from-balance)
+         (printf "Balance for ~a on ERC20 contract ~a before: ~a\n"
+                 to sym to-balance)))])
 
   (def uuid
     (spawn-green
      (lambda ()
-       (ensure-db-connection "Alice")
-       (ensure-ethereum-connection nw)
-
-       (let ((from-balance (erc20-balance erc20-address from-address))
-             (to-balance (erc20-balance erc20-address to-address)))
-         (printf "\nSending ~a tokens from ~a to ~a on ERC20 contract ~a on network ~a...\n"
-                 amount from to erc20 nw)
-         (printf "Balance for ~a on ERC20 contract ~a before: ~a\n"
-                 from sym from-balance)
-         (printf "Balance for ~a on ERC20 contract ~a before: ~a\n"
-                 to sym to-balance)
-         (erc20-transfer erc20-address from-address to-address amount)
-         (printf "Balance for ~a on ERC20 contract ~a after: ~a\n"
-                 from erc20 (erc20-balance erc20-address from-address))
-         (printf "Balance for ~a on ERC20 contract ~a after: ~a\n"
-                 to erc20 (erc20-balance erc20-address to-address))))))
+       (erc20-transfer erc20-address from-address to-address amount)
+       (printf "Balance for ~a on ERC20 contract ~a after: ~a\n"
+               from erc20 (erc20-balance erc20-address from-address))
+       (printf "Balance for ~a on ERC20 contract ~a after: ~a\n"
+               to erc20 (erc20-balance erc20-address to-address)))))
+  (set-car! (hash-ref processes uuid) stdout)
   (def json (json<-process-properties uuid))
 
   (respond/JSON json))

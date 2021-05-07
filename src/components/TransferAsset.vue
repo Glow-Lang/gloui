@@ -55,13 +55,23 @@
       </div>
       <div class="row rounded-borders">
       <div class="col q-mx-sm">
-        <q-input outlined filled v-model="ass.amount" label="Send Amount" />
+        <network :value="ass.network" @input="assetNetworkInput(key, $event)" />
+      </div>
+      <div class="col q-mx-sm">
+        <q-input outlined filled v-model="ass.amount" label="Send this Amount" />
       </div>
 
-      <div class="col">
-        <network :value="ass.network" @input="ass.network = $event" />
-      </div>
 
+      <div class="col" v-if="ass.network">
+        <resource-select
+          label="Of this Resource"
+          :network="ass.network"
+          v-model="ass.resource"
+          @input="assets[key].resource = $event; $forceUpdate()"
+          @cancel="cancelResource(key)"
+          :ref="assetRef('resource', key)"/>
+        {{ ass.resource }}
+      </div>
 
       </div>
       <div class="q-mt-sm text-center full-width">
@@ -85,8 +95,8 @@
     <div class="q-pa-md q-gutter-sm">
 
       <!-- {{ transaction }} -->
-
-    <q-dialog v-model="showProc" persistent>
+<!-- persistent -->
+    <q-dialog v-model="showProc" >
       <q-layout view="Lhh lpR fff" container class="bg-white">
         <q-header class="bg-primary">
           <q-toolbar>
@@ -222,6 +232,7 @@
 
 <script>
 import ContactSelect from 'components/ContactSelect.vue'
+import ResourceSelect from 'components/ResourceSelect.vue'
 import Contact from 'components/Contact.vue'
 import AssetSelect from 'components/AssetSelect.vue'
 
@@ -232,8 +243,30 @@ import  { findContact } from 'gambit-loader!../../public/glowdb.scm'
 
 export default {
   name: 'TransferAsset',
-  components: { ContactSelect, Contact, AssetSelect, Network },
+  components: { ContactSelect, Contact, AssetSelect, Network,
+                ResourceSelect },
   methods: {
+    cancelResource(key) {
+      this.assets[key].resource = null
+    },
+    assetNetworkInput(key, nw) {
+      this.assets[key].network = nw
+      this.assets[key].resource = null
+      const ref = this.assetRef('resource', key)
+      const res = this.$refs[ref]
+      console.log(res, ref, this.$refs)
+      if (!!res && !!res[0]) {
+        console.log('have resources', res[0])
+        res[0].updateResources().then(() => {
+          console.log("res value", res[0].resources)
+          res[0].value = res[0].resources[1]
+          this.assets[key].resource = res[0].value;
+          this.$forceUpdate();
+        })
+        this.$forceUpdate();
+
+      }
+    },
     popupAddAsset(e, key, where) {
       console.log("here, popup?")
       if (!!e && !!e.edit) {

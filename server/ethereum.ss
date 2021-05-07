@@ -16,6 +16,9 @@
         :gerbil/gambit/threads
         :std/misc/uuid :clan/crypto/secp256k1 :std/text/hex
         :clan/poo/io :std/logger
+        ./ethereum/network
+        ./ethereum/balance
+        ./ethereum/process
         )
 
 #;(begin
@@ -68,7 +71,7 @@
 
 (def baz #f)
 
-(def (make-transfer net from to amount)
+(def (make-transfer net from to amount resource)
   (def fromTable from)
   (def fromName (ref from 'owner 'name))
   (def sec (try (ref from 'address 'secret)
@@ -87,7 +90,8 @@
   (def currency (.@ (ethereum-config) nativeCurrency))
   (def value (parse-currency-value amount currency))
 
-  { net to from amount currency value fromName
+  { net to from amount currency value fromName resource
+    type: (ref resource 'type 'name)
     wrapper: (lambda (thunk)
                (register-keypair fromName keypair)
                (try (thunk)
@@ -105,23 +109,20 @@
 (def (transfer-value tran) (.@ tran value))
 
 
-(def (get-balance a) (eth_getBalance (ensure-address a)))
-
 (def (transfer-balance tran)
-  (def from (get-balance (.@ tran from)))
-  (def to (get-balance (.@ tran to)))
+  (def resource (.@ tran resource))
+  ;; (error resource)
+  (std/logger#debug "resuorse ~a" resource)
+  (def from (get-address-resource-balance (.@ tran from) resource))
+  (def to (get-address-resource-balance (.@ tran to) resource))
   { from to })
 
-(def (with-network net thunk)
-  (parameterize ((current-ethereum-network #f))
-    (ensure-ethereum-connection net)
-    (thunk)))
+
 
 (def (start-transfer-process! tran out err)
   (def (proc out err)
     (with-transfer
-     tran
-     (cut cli-send-tx tran confirmations: 0)))
+     tran (tranfer-process-function tran)))
   (let ((thread (thread-start! (make-thread (cut proc out err)))))
     (set! (.@ tran process) { out err thread })
     tran))
@@ -264,7 +265,10 @@
 
   (def to (ref trans 'to 'address 'number))
   (def amount (ref trans 'amount))
-  (with-network net (cut make-transfer net from to amount)))
+  (def resource (ref trans 'resource))
+  ;; (error (with-output-to-string "" (cut write-json resource)))
+  ;; (error resource)
+  (with-network net (cut make-transfer net from to amount resource)))
 
 (def (make-transaction-from-POST tranny)
   (def assets (ref tranny 'assets))

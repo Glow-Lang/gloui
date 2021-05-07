@@ -33,13 +33,19 @@
 import  { listNetworks }  from 'gambit-loader!../../public/glowdb.scm'
 export default {
   mounted: function () {
-    $glowdbPromise.then(() => {
-      listNetworks().then(l => {
-        this.networks = l
-        this.value = l[0].key
-        this.$emit('input', this.value)
+    this.reset()
+  },
+  methods: {
+    reset() {
+      return $glowdbPromise.then(() => {
+        listNetworks().then(l => {
+          this.networks = l
+          this.value = l[0].key
+          this.$emit('input', this.value)
+        })
       })
-    })
+
+    }
   },
   data () {
     return {
