@@ -107,8 +107,13 @@ export default {
 
       return saveAddress(add).then(() => {
         listAddresses().then(l => {
+          this.addNewAddress = false
           this.AllAddresses = l
           console.log('New address added', l, this.selected)
+          const nAddress = l.find(a => a.id === add.id);
+          this.value = [ nAddress, ...this.value ]
+          this.$emit('new', nAddress);
+
           this.$forceUpdate()
         })
       })

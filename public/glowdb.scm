@@ -41,14 +41,18 @@
       }
       
 
-      //db.deleteObjectStore('address')
+      if (db.objectStoreNames.contains('address')) {
+       db.deleteObjectStore('address')
+        }
       if (!db.objectStoreNames.contains('address')) {
         console.log('Upgrading Address')
         let objectStore = db.createObjectStore("address", { keyPath: "id" });
       }
       
 
-      db.deleteObjectStore('asset')
+      if (db.objectStoreNames.contains('asset')) {
+        db.deleteObjectStore('asset')
+        }
       if (!db.objectStoreNames.contains('asset')) {
       
         console.log('Upgrading Asset')
@@ -68,7 +72,9 @@
       }
       
 
-      db.deleteObjectStore('resource')
+      if (db.objectStoreNames.contains('resource')) {
+         db.deleteObjectStore('resource')
+        }
       if (!db.objectStoreNames.contains('resource')) {
             console.log('Upgrading Resource')
         let objectStore = db.createObjectStore("resource", { keyPath: ["name", 'network'] });

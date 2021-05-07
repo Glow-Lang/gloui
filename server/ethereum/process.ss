@@ -4,7 +4,6 @@
 (export #t)
 (import :mukn/ethereum/cli :mukn/ethereum/ethereum
         :mukn/ethereum/assets
-        :mukn/ethereum/pet-contracts
         :mukn/ethereum/testing :mukn/ethereum/json-rpc
         :mukn/ethereum/network-config
         :mukn/ethereum/types

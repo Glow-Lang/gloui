@@ -11,7 +11,8 @@ const routes = [
         props: { contact: null }, component: () => import('pages/EditContact.vue') },
       { path: 'AssetTransfer', component: () => import('pages/AssetTransfer.vue') },
       { path: 'Rolodex', component: () => import('pages/Rolodex.vue') },
-      { path: '', component: () => import('pages/Index.vue') }
+      // { path: '', component: () => import('pages/Index.vue') },
+      { path: '', component: () => import('pages/AssetTransfer.vue') }
     ]
   },
 

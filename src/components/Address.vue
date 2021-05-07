@@ -1,6 +1,8 @@
 <template>
-  <div>
-    Jas!
+<div>
+<div v-if="err" class="q-pa-lg text-red">
+    {{ err }}
+  </div>
  <div class="row">
     <div class="col">
       <q-card class="q-px-lg q-pb-lg block q-mx-md" >
@@ -30,6 +32,7 @@ export default {
   data() {
     return {
       value: {},
+      err: false
     }
   },
   methods: {
@@ -45,6 +48,7 @@ export default {
     },
 
     findNumber() {
+      console.log('find number', this.value.secret)
       const sec = this.value.secret
       if (!!sec && sec.startsWith('0x')) {
         this.err = false
@@ -62,7 +66,7 @@ export default {
 
 
           })
-      } else if (!!sec) this.err = "Invalid 0x Hex: " + sec
+      } else { this.err = "Invalid 0x Hex: " + sec }
     },
     saveNewAddress() {
       const add = this.value;

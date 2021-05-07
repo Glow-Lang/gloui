@@ -4,7 +4,7 @@
 (export #t)
 (import :mukn/ethereum/cli :mukn/ethereum/ethereum
         :mukn/ethereum/assets
-        :mukn/ethereum/pet-contracts
+        :mukn/ethereum/test-contracts
         :mukn/ethereum/testing :mukn/ethereum/json-rpc
         :mukn/ethereum/network-config
         :mukn/ethereum/types
@@ -66,6 +66,7 @@
     (def id (http-request-body-json*))
     (def pk (ref id 'key))
     (def 0x (0x<-address (address<-private-key pk)))
+   ;; (error 0x)
     (respond/JSON 0x))
   (with-JSON-catch giver))
 

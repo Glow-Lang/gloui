@@ -28,12 +28,13 @@
 
           <q-card-section>
 
-            {{ addresses }}
+            <!-- {{ addresses }} -->
             <!--  -->
                 <address-select v-if="addresses"
                                 :selected="addresses"
                                 ref="address"
                                 @input="addresses = $event;inputContactEvent()"
+                                @new="$emit('new', $event)"
                                 />
 
           </q-card-section>

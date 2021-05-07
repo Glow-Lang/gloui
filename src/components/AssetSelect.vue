@@ -102,8 +102,8 @@ export default {
         this.assets = this.assets.sort ((a, b) => a.address.label < b.address.label);
 
         this.assets = [ { owner: { id: this.ownerID },
-                          address: { label: "Edit Contact",
-                                     number: "Add an Address as an Asset" },
+                          address: { label: "Add an Address",
+                                     number: "Edit the contact to make an asset" },
                           edit: true
                         }, ...this.assets ]
         return true;
