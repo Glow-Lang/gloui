@@ -290,7 +290,7 @@ function findIdentity(id) {
   })
 }
 function saveAsset(ctct) {
-  $glowdbPromise.then(db => {
+  return $glowdbPromise.then(db => {
     const trans = db.transaction('asset', 'readwrite').objectStore('asset')
     const obj = trans.put(ctct)
   })

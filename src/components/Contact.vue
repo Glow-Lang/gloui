@@ -34,8 +34,14 @@
                                 :selected="addresses"
                                 ref="address"
                                 @input="addresses = $event;inputContactEvent()"
-                                @new="$emit('new', $event)"
+                                @new="newAddress"
+                                :ownerID="allowOtherAddresses ? null : contact.id"
                                 />
+                <div class="q-gutter-sm">
+                  <q-checkbox v-model="allowOtherAddresses" label="Share other used or unused addresses?" />
+                </div>
+
+                {{ contact }}
 
           </q-card-section>
         </div>
@@ -99,6 +105,16 @@ export default {
     inputContactEvent() {
       this.modded = true
     },
+    newAddress(add) {
+      console.log('New Addreww,', saveAsset, listAssetEntities)
+      const newAsset = { owner: this.contact.id, address: add.id }
+      saveAsset(newAsset).then(() => {
+        listAssetEntities().then(es => {
+          const newE = es.find( e => e.address.id === add.id )
+          this.$emit('newAsset', newE)
+        })
+      })
+    },
     cancel() {
       this.addresses = this.oldAddresses;
       this.$emit('cancel', this.contact)
@@ -147,7 +163,8 @@ export default {
       modded: false,
       addresses: [],
       oldAddresses: [],
-      assets: []
+      assets: [],
+      allowOtherAddresses: false,
 
 
 

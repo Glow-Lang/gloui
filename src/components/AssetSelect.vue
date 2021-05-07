@@ -12,7 +12,8 @@
   color="teal"
   clearable
   options-selected-class="text-deep-orange"
-    @filter="filterFN"
+  @filter="filterFN"
+  ref="assSel"
     >
     <template v-slot:option="scope">
       <q-item
@@ -74,11 +75,20 @@ export default {
   created: function () {
     this.updateAssets()
   },
+  mounted: function () {
+    this.updateAssets().then(a => {
+      this.filterFN('', fn => fn())
+      if (!this.value) { this.value = this.assets[1] }
+    })
+  },
   methods: {
     updateAssets() {
-      listAssetEntities().then(l => {
+      return listAssetEntities().then(l => {
         this.AllAssets = l
       })
+    },
+    add(item) {
+      this.$refs.assSel.add(item)
     },
     cancel() {
       this.value = null;
@@ -103,7 +113,7 @@ export default {
 
         this.assets = [ { owner: { id: this.ownerID },
                           address: { label: "Add an Address",
-                                     number: "Edit the contact to make an asset" },
+                                     number: "Edit the contact to add an address" },
                           edit: true
                         }, ...this.assets ]
         return true;

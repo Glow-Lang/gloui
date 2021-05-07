@@ -10,7 +10,7 @@
     multiple
     emit-value
     map-options
-    label="Address(es)"
+    label="Select or Create Addresses"
     color="teal"
     ref="addressSelect"
     options-selected-class="text-deep-orange"
@@ -59,20 +59,25 @@
 </template>
 
 <script>
-import  { listAddresses, saveAddress }  from 'gambit-loader!../../public/glowdb.scm'
+import  { listAddresses, saveAddress, listAssets }  from 'gambit-loader!../../public/glowdb.scm'
 import EtAddress from 'components/Address.vue'
 
 export default {
   props: { mustHaveSecret: { type: Boolean, default: false },
            selected: { type: Array,
                        default: () => []
-                     }
+                     },
+           ownerID: {}
          },
   components: { EtAddress },
   beforeMount: function () {
       listAddresses().then(l => {
         this.AllAddresses = l
         console.log('Alladdreeses', l, this.selected)
+        listAssets().then(al => {
+          this.assets = al
+          console.log("here are assets", al)
+        })
        this.$forceUpdate()
       })
   },
@@ -146,9 +151,12 @@ export default {
           this.addresses = this.addresses.filter(a => typeof a.secret === 'string')
         }
 
-        // if (this.ownerID) {
-        //   this.addresses = this.addresses.filter(a => typeof a.secret === 'string')
-        // }
+        console.log('ower', this.ownerID)
+         if (!!this.ownerID) {
+           this.addresses = this.addresses.filter(a => !!this.assets.find(ass =>
+             (ass.owner === this.ownerID && ass.address === a.id)))
+           console.log(this.addresses)
+         }
         this.addresses = [ { label: "Create New Address",
                              number: "Add a new Address for this Contact",
                              add: true
@@ -175,7 +183,8 @@ export default {
       addresses:[],
       filter: (a) => a,
       addNewAddress: false,
-      newAddress: {}
+      newAddress: {},
+      assets: []
 
      }
   }

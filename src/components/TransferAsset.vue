@@ -42,6 +42,8 @@
             :ref="assetRef('from', key)"
             />
           <!-- {{ key  }} -->
+          <!-- {{ ass.from }} -->
+
         </div>
 
         <div class="col-6">
@@ -51,6 +53,7 @@
                         @input="popupAddAsset($event, key, 'to')"
                         :ref="assetRef('to', key)"
                         />
+          <!-- {{ ass.to }} -->
         </div>
       </div>
       <div class="row rounded-borders">
@@ -70,7 +73,7 @@
           @input="assets[key].resource = $event; $forceUpdate()"
           @cancel="cancelResource(key)"
           :ref="assetRef('resource', key)"/>
-        {{ ass.resource }}
+        <!-- {{ ass.resource }} -->
       </div>
 
       </div>
@@ -185,7 +188,8 @@
         <q-page-container>
           <q-page padding>
             <contact :value="editContact" v-bind:contact="editContact"
-                     :showDesc="false" @input="assetAdded" @cancel="cancelAddAsset"/>
+                     :showDesc="false" @input="assetAdded" @cancel="cancelAddAsset"
+                     @newAsset="newAddress"/>
 
           </q-page>
         </q-page-container>
@@ -286,10 +290,19 @@ export default {
       console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
 
     },
-    assetAdded() {
+    assetAdded(ass) {
       this.canEditContact = false;
-      console.log('added asset, reset:', this.assetRef(this.editContactKey))
-      console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+     // console.log('added asset, reset:', this.assetRef(this.editContactKey), ass)
+      //console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+    },
+    newAddress(add) {
+      console.log("Transer New asset", this.editContactKey, this.editContactLocation, add)
+      this.assets[this.editContactKey][this.editContactLocation] = add;
+      const ref = this.$refs[this.assetRef(this.editContactLocation, this.editContactKey)][0]
+      console.log('xfaera ref', ref)
+      ref.add(add);
+      this.canEditContact = false;
+      this.$forceUpdate()
     },
     popupAddContact(e, where) {
       if (!!e && !!e.add) {
