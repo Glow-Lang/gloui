@@ -10,7 +10,8 @@
  <q-item v-if="avatar">
         <q-item-section avatar>
           <q-avatar>
-            <img :src="avatar">
+            <q-icon name="contact_mail"/>
+            <!-- <img :src="avatar"> -->
           </q-avatar>
         </q-item-section>
         <q-item-section>
@@ -41,7 +42,7 @@
                   <q-checkbox v-model="allowOtherAddresses" label="Share other used or unused addresses?" />
                 </div>
 
-                {{ contact }}
+                <!-- {{ contact }} -->
 
           </q-card-section>
         </div>

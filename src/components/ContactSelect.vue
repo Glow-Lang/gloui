@@ -24,7 +24,9 @@
             name="add_circle" class="text-green text-h4"/>
           </q-avatar>
           <q-avatar v-else>
-            <img :src="value.avatar || avatar(value)">
+          <q-icon
+            name="contact_mail" class="text-teal text-h4"/>
+            <!-- <img :src="value.avatar || avatar(value)"> -->
           </q-avatar>
         </q-item-section>
         <q-item-section>
@@ -46,8 +48,9 @@
           <q-icon
             name="add_circle" class="text-green text-h4"/>
           </q-avatar>
-          <q-avatar v-else>
-            <img :src="scope.opt.avatar || avatar(scope.opt)">
+          <q-avatar v-else><q-icon
+            name="contact_mail" class="text-teal text-h4"/>
+            <!-- <img :src="scope.opt.avatar || avatar(scope.opt)"> -->
           </q-avatar>
         </q-item-section>
         <q-item-section>
@@ -80,6 +83,7 @@ export default {
           const sel = this.AllContacts.find(con => con.id === c.id)
           console.log('Have New Contact!', sel)
           this.value = sel
+          this.$emit('input', sel)
         } else {
           this.value = null;
         }

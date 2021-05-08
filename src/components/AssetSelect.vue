@@ -78,7 +78,10 @@ export default {
   mounted: function () {
     this.updateAssets().then(a => {
       this.filterFN('', fn => fn())
-      if (!this.value) { this.value = this.assets[1] }
+      if (!this.value) {
+        this.value = this.assets[1]
+        this.$emit('input', this.value)
+      } else { console.log('Sane Asser', this.value) }
     })
   },
   methods: {
@@ -105,9 +108,6 @@ export default {
           this.assets = this.assets.filter(a => typeof a.address.secret === 'string')
         }
 
-        if (!!this.ownerID) {
-          this.assets = this.assets.filter(a => a.owner.id === this.ownerID)
-        }
 
         this.assets = this.assets.sort ((a, b) => a.address.label < b.address.label);
 
@@ -116,6 +116,11 @@ export default {
                                      number: "Edit the contact to add an address" },
                           edit: true
                         }, ...this.assets ]
+
+        if (!!this.ownerID) {
+          this.assets = this.assets.filter(a => a.owner.id === this.ownerID)
+        } else this.assets = []
+
         return true;
         // this.assets = fn(this.AllAssets).filter(ass => {
       //     if (!!this.ownerID) return this.ownerID === ass.owner.id;

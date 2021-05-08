@@ -59,7 +59,7 @@
     <q-btn  color="primary" label="Cancel"
            v-on:click="cancel" />
 
-    {{ value }} {{ makeResource() }}
+    <!-- {{ value }} {{ makeResource() }} -->
 </div>
 </template>
 

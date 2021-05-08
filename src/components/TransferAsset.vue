@@ -125,10 +125,10 @@
               Transfering from {{ transaction.remaining }} assets.</h5>
             <q-list v-for="xfer in transaction.transfers" :key="xfer.id">
               <q-item v-if="!!xfer.state">
-                <q-card style="padding: 1em;" :class="xfer.state === 'error' ? 'bg-red-2' : ''">
+                <q-card style="padding: 1em;" padding :class="xfer.state === 'error' ? 'bg-red-2' : ''">
                   <big v-if="xfer.state === 'error'"> ERROR: {{xfer.errorMessage}}</big>
-                  {{ xfer.currency }} {{xfer.amount}}
-                  <br>from {{ xfer.from }}
+                 <div class="text-h5"> {{ xfer.type }}: {{xfer.amount}} </div>
+                  from {{ xfer.from }}
                   <br> to {{ xfer.to }}
                   <div> <big>Opening Balance:</big>
                   <div class="row">
@@ -283,6 +283,8 @@ export default {
           this.editContactLocation = where;
           this.editContactRef = this.assetRef(where, key)
         })
+      } else {
+        this.assets[key][this.where] = e;
       }
     },
     cancelAddAsset() {
@@ -293,23 +295,29 @@ export default {
     assetAdded(ass) {
       this.canEditContact = false;
      // console.log('added asset, reset:', this.assetRef(this.editContactKey), ass)
-      //console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+      // console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
     },
     newAddress(add) {
+      if (!!add) {
       console.log("Transer New asset", this.editContactKey, this.editContactLocation, add)
       this.assets[this.editContactKey][this.editContactLocation] = add;
       const ref = this.$refs[this.assetRef(this.editContactLocation, this.editContactKey)][0]
       console.log('xfaera ref', ref)
       ref.add(add);
       this.canEditContact = false;
-      this.$forceUpdate()
+        this.$forceUpdate()
+      }
     },
     popupAddContact(e, where) {
       if (!!e && !!e.add) {
         this.canAddContact = true;
         this.addContactLocation = where
         this.addContact = { avatar: e.avatar };
-        this.from = this.addContact;
+        if (where === 'from') {
+          this.from = this.addContact;
+        } else {
+          this.to = this.addContact;
+        }
       }
     },
     addContactSelect() {
@@ -317,9 +325,10 @@ export default {
         ? this.$refs.fromSelect : this.$refs.toSelect
     },
     contactAdded(c) {
-      console.log("contact added?")
+      console.log("contact added?", c)
       this.canAddContact = false;
       this.addContactSelect().updateAndSelect(c);
+      this.$forceUpdate()
     },
     cancelAddContact() {
       this.addContactSelect().updateAndSelect(null);

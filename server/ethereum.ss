@@ -23,7 +23,11 @@
 
 #;(begin
   (register-test-keys)
-  (def drewc "0x72Ab1A268DeD7fE3c6cA81caFF268E41796Ed1E9")
+  (def drewc "
+
+0x72Ab1A268DeD7fE3c6cA81caFF268E41796Ed1E9
+0x1167a41c432d1a494408b8fdeecd79bff89a5689925606dff8adf01f4bf92922
+")
   (def alice "0x94314828752f41550F8E40d3C454747A1EDD0eA3")
   (def croesus "0x25c0bb1A5203AF87869951AEf7cF3FEdD8E330fC"
     ;; (address<-nickname "t/croesus")
@@ -37,6 +41,19 @@
              key: "
 
 0x3ad24210623d9d71e1c4667f5e9ecd749f5da2cf118a60f54790f7a77011b1bb
+
+0x25c0bb1A5203AF87869951AEf7cF3FEdD8E330fC
+Creating QASPET (ERC20)...
+... QASPET contract created at address
+
+0x8e0BE69f202e245221B6D679B58faaBe1e463100
+Creating RBTPET (ERC20)...
+... RBTPET contract created at address 0x9FC8935f73cf1481729FE787669c558a30E5B44B
+Creating HAMPET (ERC721)...
+... HAMPET contract created at address 0x990E192133b8A98e229b4f22Fc0C3c1F4d88162E
+
+
+
 
 "})
  (extern (display-exception display-exception))
@@ -92,7 +109,7 @@
   (def value (parse-currency-value amount currency))
 
   { net to from amount currency value fromName resource
-    type: (ref resource 'type 'name)
+    type: (ref resource 'type)
     wrapper: (lambda (thunk)
                (register-keypair fromName keypair)
                (try (thunk)
@@ -228,6 +245,7 @@
                 ["net" net ...]
                 ["from" (0x<-address(.@ tran from)) ...]
                 ["to" (0x<-address(.@ tran to)) ...]
+                ["type" (.@ tran type) ...]
                 ["currency" (.@ tran currency symbol) ...]
                 ["amount" (.@ tran amount) ...]
                 ["state" (transfer-process-state tran) ...]
