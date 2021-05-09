@@ -1,0 +1,71 @@
+#+TITLE: Hacking
+
+* Add Yarn and python and make and gcc and nodejs
+
+Install it.
+
+#+begin_src shell
+nix-env -iA nixpkgs.yarn nixpkgs.python3 nixpkgs.gnumake nixpkgs.gcc
+export PATH="$(yarn global bin):$PATH"
+#+end_src
+
+* Grab the ~gxjs~ repo
+
+#+begin_src shell
+git clone git@github.com:drewc/gxjs.git
+#+end_src
+
+* link the packages
+
+#+begin_src shell
+cd gxjs/packages;
+DEPS=(gambit-loader
+      gambit-scheme
+      gerbil-loader
+      gerbil-scheme
+      gxjs-loader
+      gxjs) ;
+
+for i in ${DEPS[@]} ; do
+  cd $i && yarn link && cd ..
+done
+cd ../..
+#+end_src
+
+* Grab the gloui repo
+
+#+begin_src shell
+git clone git@github.com:drewc/gloui.git
+#+end_src
+
+* Install the yarn packages
+
+#+begin_src shell
+cd gloui && yarn install && cd ..
+#+end_src
+
+* Install quasar
+
+#+begin_src shell
+yarn global add @quasar/cli
+cd gloui && yarn add node-pty --dev && cd ..
+cd gxjs/packages/gambit-loader/ && yarn add node-pty --dev && cd ../../..
+#+end_src
+
+* Run Quasar Dev!!
+
+#+begin_src shell
+cd gloui && yarn install
+
+DEPS=(gambit-loader
+      gambit-scheme
+      gerbil-loader
+      gerbil-scheme
+      gxjs-loader
+      gxjs) ;
+for i in ${DEPS[@]} ; do
+  yarn link $i
+done
+
+quasar dev
+#+end_src
