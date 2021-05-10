@@ -60,14 +60,9 @@
       <div class="col q-mx-sm">
         <network :value="ass.network" @input="assetNetworkInput(key, $event)" />
       </div>
-      <div class="col q-mx-sm">
-        <q-input outlined filled v-model="ass.amount" label="Send this Amount" />
-      </div>
-
-
       <div class="col" v-if="ass.network">
         <resource-select
-          label="Of this Resource"
+          label="From this Resource"
           :network="ass.network"
           v-model="ass.resource"
           @input="assets[key].resource = $event; $forceUpdate()"
@@ -75,6 +70,12 @@
           :ref="assetRef('resource', key)"/>
         <!-- {{ ass.resource }} -->
       </div>
+
+      <div class="col q-mx-sm">
+        <q-input outlined filled v-model="ass.amount" label="Send this Amount" />
+      </div>
+
+
 
       </div>
       <div class="q-mt-sm text-center full-width">
@@ -96,7 +97,7 @@
     </div>
   </div>
     <div class="q-pa-md q-gutter-sm">
-
+      {{ assets }}
       <!-- {{ transaction }} -->
 <!-- persistent -->
     <q-dialog v-model="showProc" >
@@ -124,13 +125,21 @@
             <h5 v-if="transaction.state !== 'finished'">
               Transfering from {{ transaction.remaining }} assets.</h5>
             <q-list v-for="xfer in transaction.transfers" :key="xfer.id">
+
               <q-item v-if="!!xfer.state">
-                <q-card style="padding: 1em;" padding :class="xfer.state === 'error' ? 'bg-red-2' : ''">
+                <q-card padding
+                        :class="xfer.state === 'error' ? 'bg-red-2' : '' + 'q-pa-xl'">
                   <big v-if="xfer.state === 'error'"> ERROR: {{xfer.errorMessage}}</big>
-                 <div class="text-h5"> {{ xfer.type }}: {{xfer.amount}} </div>
+                  <div class="text-h4"> {{ xfer.resource.description }}
+                    <div class="text-h5 ful-width text-center"> net: {{ xfer.resource.network }}
+                      <span class="q-ma-xl"> </span> {{ xfer.resource.name }}: {{xfer.amount}} </div>
+                  </div>
+                  <q-card bordered class="q-pa-m q-mt-m">
+                    <br/>
                   from {{ xfer.from }}
                   <br> to {{ xfer.to }}
-                  <div> <big>Opening Balance:</big>
+                  </q-card>
+                  <div class="q-mt-xl"> <big>Opening Balance:</big>
                   <div class="row">
                     <div class="col"> From: </div>
                     <div class="col"> {{ xfer.openBalance.from }} </div>
@@ -254,11 +263,12 @@ export default {
       this.assets[key].resource = null
     },
     assetNetworkInput(key, nw) {
+      console.log('Start Input Asset Network', key, nw)
       this.assets[key].network = nw
       this.assets[key].resource = null
       const ref = this.assetRef('resource', key)
       const res = this.$refs[ref]
-      console.log(res, ref, this.$refs)
+      console.log("Have existing asset?", res, ref, this.$refs[ref])
       if (!!res && !!res[0]) {
         console.log('have resources', res[0])
         res[0].updateResources().then(() => {
@@ -270,6 +280,7 @@ export default {
         this.$forceUpdate();
 
       }
+      console.log('Finish Input Asset Network')
     },
     popupAddAsset(e, key, where) {
       console.log("here, popup?")
@@ -299,16 +310,19 @@ export default {
     },
     newAddress(add) {
       if (!!add) {
-      console.log("Transer New asset", this.editContactKey, this.editContactLocation, add)
-      this.assets[this.editContactKey][this.editContactLocation] = add;
-      const ref = this.$refs[this.assetRef(this.editContactLocation, this.editContactKey)][0]
-      console.log('xfaera ref', ref)
-      ref.add(add);
-      this.canEditContact = false;
+        console.log("Transer New asset", this.editContactKey, this.editContactLocation, add)
+        this.assets[this.editContactKey][this.editContactLocation] = add;
+        const ref = this.$refs[this.assetRef(this.editContactLocation, this.editContactKey)][0]
+        console.log('xfaera ref', ref)
+        ref.add(add);
+        this.canEditContact = false;
         this.$forceUpdate()
       }
     },
     popupAddContact(e, where) {
+      Object.entries(this.$refs).filter(e => e[0].startsWith('asset' + where))
+        .map(e => e[1][0].cancel())
+        this.assets.map(a => a[where] = null)
       if (!!e && !!e.add) {
         this.canAddContact = true;
         this.addContactLocation = where
@@ -318,6 +332,9 @@ export default {
         } else {
           this.to = this.addContact;
         }
+      } else {
+        console.log("adding contact, must clear all ", where, ' addresses')
+        console.log("where are they?", this.assets.map(a => a[where]))
       }
     },
     addContactSelect() {

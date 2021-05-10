@@ -246,6 +246,7 @@ Creating HAMPET (ERC721)...
                 ["from" (0x<-address(.@ tran from)) ...]
                 ["to" (0x<-address(.@ tran to)) ...]
                 ["type" (.@ tran type) ...]
+                ["resource" (.@ tran resource) ...]
                 ["currency" (.@ tran currency symbol) ...]
                 ["amount" (.@ tran amount) ...]
                 ["state" (transfer-process-state tran) ...]

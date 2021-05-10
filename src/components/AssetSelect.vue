@@ -21,8 +21,15 @@
         v-bind="scope.itemProps"
         v-on="scope.itemEvents"
         >
-        <q-item-section side v-if="scope.opt.address.secret">
-          <q-icon name="enhanced_encryption" />
+        <q-item-section top side class="justify-center">
+          <q-avatar v-if="scope.opt.edit">
+            <q-icon name="add_circle" class="text-green text-h4"/>
+          </q-avatar>
+          <q-avatar v-else>
+          <jazzicon :address="scope.opt.address.number" :diameter="20" />
+          <q-icon v-if="scope.opt.address.secret" name="enhanced_encryption" />
+          </q-avatar>
+
         </q-item-section>
         <span v-if="!ownerID"> Owner: {{ scope.opt.owner.name }} </span>
         <q-item-section>
@@ -39,8 +46,9 @@
 
               style="height:100%"
               >
-        <q-item-section top side v-if="value.address.secret">
-          <q-icon name="enhanced_encryption" />
+        <q-item-section top side class="justify-center">
+          <jazzicon :address="value.address.number" :diameter="20" />
+          <q-icon  v-if="value.address.secret" name="enhanced_encryption" />
         </q-item-section>
          <span v-if="!ownerID"> Owner: {{ value.owner.name }} </span>
         <q-item-section top >
@@ -63,9 +71,12 @@
 
 <script>
 import  { listAssetEntities }  from 'gambit-loader!../../public/glowdb.scm'
-import ResourceItem from 'components/ResourceItem.vue'
+// import ResourceItem from 'components/ResourceItem.vue'
+import Jazzicon from 'vue-jazzicon';
+
+
 export default {
-  //components: { ResourceItem },
+  components: { Jazzicon },
   props: {
     filterFn: {  default: (a) => a, type: Function },
     ownerID: { default: null },
@@ -84,6 +95,7 @@ export default {
       } else { console.log('Sane Asser', this.value) }
     })
   },
+
   methods: {
     updateAssets() {
       return listAssetEntities().then(l => {
@@ -95,7 +107,13 @@ export default {
     },
     cancel() {
       this.value = null;
-      this.updateAssets();
+      this.updateAssets().then(a => {
+        this.filterFN('', fn => fn())
+        if (!this.value) {
+          this.value = this.assets[1]
+          this.$emit('input', this.value)
+        } else { console.log('Sane Asser', this.value) }
+      })
     },
     filterFN(val, update) {
       update(() => {
@@ -119,8 +137,14 @@ export default {
 
         if (!!this.ownerID) {
           this.assets = this.assets.filter(a => a.owner.id === this.ownerID)
-        } else this.assets = []
+        } else {
+          this.assets = []
+          this.value = null
+        }
 
+        if (!!this.value && this.value.owner.id !== this.ownerID) {
+          this.value = null
+        }
         return true;
         // this.assets = fn(this.AllAssets).filter(ass => {
       //     if (!!this.ownerID) return this.ownerID === ass.owner.id;
