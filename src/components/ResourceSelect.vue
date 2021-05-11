@@ -138,6 +138,7 @@ export default {
         this.updateResources();
         this.$forceUpdate();
         this.$emit('input', res)
+        this.$emit('select', res)
       }
     },
     cancel() {

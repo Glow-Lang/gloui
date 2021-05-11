@@ -57,15 +57,25 @@
         </div>
       </div>
       <div class="row rounded-borders">
-      <div class="col q-mx-sm">
-        <network :value="ass.network" @input="assetNetworkInput(key, $event)" />
+        <div class="col q-mx-sm">
+
+          <!-- On This Network -->
+
+          <network label="On this Network"
+                   :value="ass.network"
+                   @input="assetNetworkInput(key, $event)"
+                   @select="assetNetworkSelect(key, $event)"
+                   />
+
       </div>
       <div class="col" v-if="ass.network">
         <resource-select
+
           label="From this Resource"
+
           :network="ass.network"
           v-model="ass.resource"
-          @input="assets[key].resource = $event; $forceUpdate()"
+          @input="assetResourceSelect(key, $event); $forceUpdate()"
           @cancel="cancelResource(key)"
           :ref="assetRef('resource', key)"/>
         <!-- {{ ass.resource }} -->
@@ -282,6 +292,45 @@ export default {
       }
       console.log('Finish Input Asset Network')
     },
+    assetAccountBalance(key, ass, where) {
+      const which = ass[where]
+      const add = which ? which.address.number : false
+      const res = ass.resource;
+      if (!!add && !!res) {
+        const addressSelect = this.$refs['asset'+ where + key][0]
+        addressSelect.balance = 'ask'
+        console.log('refs again', this.$refs)
+        axios.post($glowServer+"/eth/balance",
+                   {
+                     address: add,
+                     resource: res
+                   })
+          .then(resp => {
+            console.log('Balance for', where, resp.data)
+            which.balance = resp.data
+            addressSelect.balance = true;
+          })
+          .catch(e => {
+            addressSelect.balance = false
+            this.err = e
+          })
+      } else {
+        console.warn("NO ADDRESS OR RESOURCE FOR", where, ass, which, res)
+      }
+    },
+    assetNetworkSelect(key, nw) {
+      console.log('Selected a network', this.assets)
+      this.assets[key].selectedNetwork = nw
+
+    },
+    assetResourceSelect(key, res, selectedR = false) {
+      const ass = this.assets[key]
+      ass.resource = res;
+      if (!!ass.selectedNetwork || selectedR) {
+        this.assetAccountBalance(key, ass, 'from')
+        this.assetAccountBalance(key, ass, 'to')
+      }
+    },
     popupAddAsset(e, key, where) {
       console.log("here, popup?")
       if (!!e && !!e.edit) {
@@ -337,6 +386,7 @@ export default {
         console.log("where are they?", this.assets.map(a => a[where]))
       }
     },
+
     addContactSelect() {
       return this.addContactLocation === 'from'
         ? this.$refs.fromSelect : this.$refs.toSelect

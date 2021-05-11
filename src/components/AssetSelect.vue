@@ -37,7 +37,8 @@
         <q-item-label>
           <small class="text-grey text-bold">{{ scope.opt.address.number }}</small>
         </q-item-label>
-        </q-item-section>
+
+       </q-item-section>
       </q-item>
     </template>
 
@@ -57,6 +58,18 @@
         <q-item-label >
           <small class="text-grey text-bold">{{ value.address.number }}</small>
         </q-item-label>
+        <div v-if="balance === 'ask'">
+          <q-spinner-orbit
+            color="primary"
+            size="2em"
+            />
+          <q-tooltip :offset="[0, 8]">Asking network for Balance</q-tooltip>
+        </div>
+
+        <div class="text-h5 secondary" v-else-if="balance">
+          Balance: {{ value.balance.resource.name }} {{ value.balance.balance }}
+        </div>
+
         </q-item-section>
        </q-item>
       <!-- {{ value  }} -->
@@ -163,7 +176,7 @@ export default {
       value: null,
       AllAssets: [],
       assets: null,
-
+      balance: null
      }
   }
 }

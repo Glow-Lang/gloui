@@ -2,13 +2,12 @@
   <q-select
     filled
     v-model="value"
-    @input="$emit('input', $event)"
+    @input="$emit('input', $event); $emit('select', $event);"
     :options="networks"
     option-value="key"
     option-label="description"
     emit-value
     map-options
-    label="On this Network"
     color="teal"
     clearable
     options-selected-class="text-deep-orange"

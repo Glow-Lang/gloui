@@ -365,6 +365,22 @@ Creating HAMPET (ERC721)...
     (process-transaction! tranny)
     (respond/JSON (json<-transaction tranny)))
 
-  (with-JSON-catch tfer)
-  ;(tfer)
-  )
+  (with-JSON-catch tfer))
+
+(define-json-endpoint eth-balance "/eth/balance$")
+
+(def (eth-balance/POST)
+  (def (bala)
+    (def bal (http-request-body-json*))
+    (def address (ref bal 'address))
+    (def resource (ref bal 'resource))
+    (def dec (or (hash-ref resource 'decimals #f)
+                 18))
+    (ensure-db-connection "Live")
+    (let* ((num (/ (get-address-resource-balance address resource)
+                   (expt 10 dec)))
+           (jso (list->hash-table [["address" address ...]
+                                   ["resource" resource ...]
+                                   ["balance" num ...]])))
+      (respond/JSON jso)))
+  (with-JSON-catch bala))
