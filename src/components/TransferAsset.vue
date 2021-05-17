@@ -147,8 +147,8 @@
                         :class="xfer.state === 'error' ? 'bg-red-2' : '' + 'q-pa-xl'">
                   <big v-if="xfer.state === 'error'"> ERROR: {{xfer.errorMessage}}</big>
                   <div class="text-h4"> {{ xfer.resource.description }}
-                    <div class="text-h5 ful-width text-center"> net: {{ xfer.resource.network }}
-                      <span class="q-ma-xl"> </span> {{ xfer.resource.name }}: {{xfer.amount}} </div>
+                    <div class="text-h5 ful-width text-center"> Network: {{ xfer.resource.network }}
+                      <span class="q-ma-xl"> </span> {{ xfer.resource.name }} {{xfer.amount}} </div>
                   </div>
                   <q-card bordered class="q-pa-m q-mt-m">
                     <br/>

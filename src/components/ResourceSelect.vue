@@ -20,15 +20,18 @@
         v-on="scope.itemEvents"
         >
         <q-item-section avatar>
-
-          <div class="row justify-center">
-              {{ scope.opt.network }} &nbsp;
-            <jazzicon class="col" v-if="scope.opt.address" :address="scope.opt.address" :diameter="20" />
-          </div>
-
           <q-chip color="teal" text-color="white">
             <q-item-label v-html="scope.opt.name" />
           </q-chip>
+          <div class="row justify-center full-width">
+
+            <div class="col-md-6">
+              {{ scope.opt.network }} &nbsp;
+            </div>
+            <jazzicon class="col-md-6" v-if="scope.opt.address" :address="scope.opt.address" :diameter="20" />
+          </div>
+
+
         </q-item-section>
         <q-item-section>
           <q-item-label caption>{{ scope.opt.description }}</q-item-label>
@@ -46,15 +49,17 @@
     <template v-slot:selected>
       <q-item v-if="value">
         <q-item-section avatar>
-
-          <div class="row justify-center">
-              {{ value.network }} &nbsp;
-            <jazzicon class="col" v-if="value.address" :address="value.adddress" :diameter="20" />
-          </div>
-
           <q-chip color="teal" text-color="white">
             <q-item-label v-html="value.name" />
           </q-chip>
+          <div class="row justify-center full-width">
+            <div class="col-md-6">
+              {{ value.network }} &nbsp;
+            </div>
+            <jazzicon class="col-md-6" v-if="value.address" :address="value.address" :diameter="20" />
+          </div>
+
+
         </q-item-section>
         <q-item-section>
           <q-item-label caption>{{ value.description }}</q-item-label>
