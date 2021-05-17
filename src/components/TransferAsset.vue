@@ -82,7 +82,7 @@
       </div>
 
       <div class="col q-mx-sm">
-        <q-input outlined filled v-model="ass.amount" label="Send this Amount" />
+        <q-input outlined filled v-model="ass.amount" label="Send this Amount" @blur="verifyTransfer(key)" />
       </div>
 
 
@@ -264,6 +264,15 @@ import axios from 'axios'
 
 import  { findContact } from 'gambit-loader!../../public/glowdb.scm'
 
+const coinKey = "bbe3ecfc186356e177696808b423aff6"
+
+const coinLayer = axios.create({
+   baseURL: 'https://api.coinlayer.com/',
+   timeout: 10000,
+  params: { access_key: coinKey }})
+
+globalThis.coinLayer = coinLayer
+
 export default {
   name: 'TransferAsset',
   components: { ContactSelect, Contact, AssetSelect, Network,
@@ -273,21 +282,22 @@ export default {
       this.assets[key].resource = null
     },
     assetNetworkInput(key, nw) {
-      console.log('Start Input Asset Network', key, nw)
+      const ass = this.assets[key]
+      console.log('Start Input Asset Network', key, nw, ass, ass.selectedNetwork)
       this.assets[key].network = nw
-      this.assets[key].resource = null
+      // this.assets[key].resource = null
       const ref = this.assetRef('resource', key)
       const res = this.$refs[ref]
       console.log("Have existing asset?", res, ref, this.$refs[ref])
       if (!!res && !!res[0]) {
         console.log('have resources', res[0])
-        res[0].updateResources().then(() => {
-          console.log("res value", res[0].resources)
+        res[0].updateResources(nw).then(() => {
+          console.log("res value", res)
           res[0].value = res[0].resources[1]
-          this.assets[key].resource = res[0].value;
+          ass.resource = res[0].value;
+
           this.$forceUpdate();
         })
-        this.$forceUpdate();
 
       }
       console.log('Finish Input Asset Network')
@@ -300,7 +310,7 @@ export default {
         const addressSelect = this.$refs['asset'+ where + key][0]
         addressSelect.balance = 'ask'
         console.log('refs again', this.$refs)
-        axios.post($glowServer+"/eth/balance",
+        return axios.post($glowServer+"/eth/balance",
                    {
                      address: add,
                      resource: res
@@ -325,14 +335,14 @@ export default {
     },
     assetResourceSelect(key, res, selectedR = false) {
       const ass = this.assets[key]
-      ass.resource = res;
+      console.log("resource selected", key, res)
       if (!!ass.selectedNetwork || selectedR) {
         this.assetAccountBalance(key, ass, 'from')
         this.assetAccountBalance(key, ass, 'to')
       }
     },
     popupAddAsset(e, key, where) {
-      console.log("here, popup?")
+      console.log("popupAddAsset", e, key, where)
       if (!!e && !!e.edit) {
       console.log('Editing:', e ,'On Key', key)
         const id = e.owner.id;
@@ -343,13 +353,28 @@ export default {
           this.editContactLocation = where;
           this.editContactRef = this.assetRef(where, key)
         })
+      } else if (!e) {
+        // the asset is null. Do we have an owner?
+        //
+        this.editContactRef = this.assetRef(where, key)
+        this.$refs[this.assetRef(where, key)][0].cancel();
+        console.log("Adding NULL asset", key, where, this[where],  this.assets[key], this.editContactRef)
+
       } else {
         this.assets[key][this.where] = e;
       }
     },
     cancelAddAsset() {
       this.canEditContact = false;
-      console.log('ref', this.editContactRef, this.$refs[this.editContactRef][0].cancel())
+      const editEl = this.$refs[this.editContactRef][0]
+
+      if (editEl.assets.length === 1 && editEl.assets[0].edit) {
+        this[this.editContactLocation] = null;
+        this.$refs[this.editContactLocation + 'Select'].updateAndSelect()
+      }
+
+      console.log('Cancel Add Asset', this.editContactRef, editEl.assets[0], this.$refs)
+                  // this.$refs[this.editContactRef][0].cancel())
 
     },
     assetAdded(ass) {
@@ -369,8 +394,12 @@ export default {
       }
     },
     popupAddContact(e, where) {
-      Object.entries(this.$refs).filter(e => e[0].startsWith('asset' + where))
-        .map(e => e[1][0].cancel())
+      const whereAssets = Object.entries(this.$refs).filter(e => e[0].startsWith('asset' + where))
+            .map(e => { const ret = e[1]; return !!ret[0] ? ret[0] : ret })
+
+      if (whereAssets.length > 0 ) {
+        whereAssets.map(a => a.cancel());
+      }
         this.assets.map(a => a[where] = null)
       if (!!e && !!e.add) {
         this.canAddContact = true;
@@ -417,6 +446,26 @@ export default {
       this.assets = this.assets.filter(a => a !== ass);
       console.log('Assets:', this.assets, this.validTransfer())
       this.$forceUpdate()
+    },
+    verifyTransfer(key) {
+      const xfer = this.assets[key]
+      const fromBalance = !!xfer.from.balance ? xfer.from.balance.balance : false
+      const amount = xfer.amount
+
+      if (!fromBalance) {
+        return this.assetAccountBalance(key, xfer, 'from').then(() => this.verifyTransfer(key))
+      }
+
+      if (amount >= fromBalance) {
+        this.err = "WARNING: account " +xfer.from.owner.name + ' (' + xfer.from.address.number +') may not have enough to send ' + amount;
+        console.warn("amount", amount > fromBalance, fromBalance)
+      }
+
+
+      console.log("sending", xfer.amount, 'from', xfer.from, 'with balance', fromBalance)
+
+
+
     },
     performTransaction() {
       this.err = false;

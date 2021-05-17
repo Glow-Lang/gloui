@@ -100,8 +100,18 @@ export default {
       console.log("Added networks", nws)
       Promise.all(nws).then(() => {
         listNetworks().then(l => {
-          this.networks = l
+          l.sort((a,b) =>  {
+            if (!b) { return true }
+            else
+            if (a.test === b.test) {
+              return a.key < b.key
+            } else {
+              return (!a.test)
+            }
+          })
+
           console.log("Listed Networks", l)
+          this.networks = l
 
         })
       })

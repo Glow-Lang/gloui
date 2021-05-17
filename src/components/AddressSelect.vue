@@ -77,6 +77,9 @@ export default {
         listAssets().then(al => {
           this.assets = al
           console.log("here are assets", al)
+          this.filterFN()
+          console.log('address after filrer', this.addresses)
+          this.addressInput();
         })
        this.$forceUpdate()
       })
@@ -85,12 +88,30 @@ export default {
     console.log('mounted', this.selected, this.value)
  },
   beforeUpdate() {
-    console.log('Repfore Update', this.selected, this.value)
-    if ((!this.value || !this.value[0]) && !!this.selected)  {
+    console.log("Update address select", this.value, this.ownerID, this.addresses,
+               this.selected.length )
+    if ((!this.value || !this.value[0])
+        && (!!this.selected && !!this.selected[0]))  {
       const sel = this.selected.map(a => this.AllAddresses.find(aa => aa.id === a.id))
+      console.log('Have selected?', sel)
       this.value = sel
+    } else {
+      // NO selected or value
+      console.log('NO seelcted or valye', this.selected, this.value)
+      if ( (!this.selected || !this.selected[0])
+           && (!this.value || !this.value[0]) ) {
+        console.log('No selected AND no value. Owner?', !!this.ownerID)
+        if (!!this.ownerID) {
+          this.filterFN();
+          if (!!this.addresses && this.addresses.length === 1
+              && this.addresses[0].add) {
+            this.value = this.addresses.slice();
+          }
+
+        }
+      }
+
     }
-    console.log('Update wiyj', this.value)
   },
   methods: {
     displayValues() {
@@ -98,9 +119,8 @@ export default {
         return this.value.map(a => a.label).join(', ');
     },
     addressInput() {
-
       const ads = this.value
-      if (ads.length > 0 && ads[ads.length - 1].add) {
+      if (!!ads && ads.length > 0 && ads[ads.length - 1].add) {
         ads.length = ads.length - 1;
         this.addNewAddress = true
       }
@@ -132,7 +152,7 @@ export default {
       //   console.log('selected', newSel)
       // newSel.map(s => this.$refs.addressSelect.add(s))
     },
-    filterFN(val, update) {
+    filterFN(val = '', update = fn => fn()) {
       update(() => {
         const needle = val.toLowerCase()
         // this.addresses = this.filter(this.AllAddresses).filter(con => {

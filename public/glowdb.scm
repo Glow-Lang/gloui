@@ -391,20 +391,38 @@ EOF
   },
 
   addNetworks() {
-    const nws = [{"key":"ced",
-                  "description":"Cardano EVM Devnet","uri":"https://rpc-evm.portal.dev.cardano.org/",
-                  "nativeCurrency":"ADA",
-                  "test":false},
+    const nws = [
                  {"key":"etc","description":"Ethereum Classic Mainnet","uri":"https://ethereumclassic.network",
-                  "nativeCurrency":"ETC","test":false},
-                 {"key":"eth","description":"Ethereum Mainnet","uri":"https://mainnet.infura.io/v3/${INFURA_API_KEY}",
-                  "nativeCurrency":"ETH","test":false},
-                 {"key":"kot","description":"Ethereum Classic Testnet Kotti","uri":"https://www.ethercluster.com/kotti","nativeCurrency":"ETC","test":true},
-                 {"key":"kov","description":"Ethereum Testnet Kovan","uri":"https://kovan.poa.network","nativeCurrency":"ETH","test":true},
-                 {"key":"ogor","description":"Optimistic Ethereum Testnet Goerli","uri":"https://www.ethercluster.com/goerli","nativeCurrency":"ETH","test":true},
-                 {"key":"pet","description":"Private Ethereum Testnet","uri":"http://localhost:8545","nativeCurrency":"ETH","test":true},
-                 {"key":"rin","description":"Ethereum Testnet Rinkeby","uri":"https://rinkeby.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true},
-                 {"key":"rop","description":"Ethereum Testnet Ropsten","uri":"https://ropsten.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true} ]
+                  "nativeCurrency":"ETC","test": false},
+                 {"key":"ced",
+                  "description":"Cardano EVM Devnet","uri":"https://rpc-evm.portal.dev.cardano.org/",
+                  "nativeCurrency":"CED",
+                  "exchangeCurreny" : "ADA",
+                  "test": true},
+                 // {"key":"eth","description":"Ethereum Mainnet","uri":"https://mainnet.infura.io/v3/${INFURA_API_KEY}",
+                 //  "nativeCurrency":"ETH","test":false},
+                 {"key":"kot",
+                  "description":"Ethereum Classic Testnet Kotti",
+                  "uri":"https://www.ethercluster.com/kotti",
+                  "nativeCurrency":"KOT",
+                  "exchangeCurrency":"ETC",
+                  "test":true},
+                 {"key":"kov",
+                  "description":"Ethereum Testnet Kovan",
+                  "uri":"https://kovan.poa.network",
+                  "nativeCurrency":"KOV",
+                  "exchangeCurrency":"ETC",
+                  "test":true},
+                 {"key":"ogor","description":"Optimistic Ethereum Testnet Goerli",
+                  "uri":"https://www.ethercluster.com/goerli",
+                  "nativeCurrency":"ETH",
+                  "exchangeCurrency":"ETC",
+                  "test":true},
+                 {"key":"pet","description":"Private Ethereum Testnet","uri":"http://localhost:8545","nativeCurrency":"ETH","test":true}
+                 // {"key":"rin","description":"Ethereum Testnet Rinkeby","uri":"https://rinkeby.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true},
+                 // {"key":"rop","description":"Ethereum Testnet Ropsten","uri":"https://ropsten.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true}
+                 ]
+
    return nws.map(nw => $glowdb.transaction('network', 'readwrite').objectStore('network').put(nw));
    },
   countObjectStore(store, query) {

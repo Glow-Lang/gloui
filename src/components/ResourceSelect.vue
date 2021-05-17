@@ -91,19 +91,21 @@ export default {
       this.$emit('input', this.value)
     })
   },
-  props: ['label', 'network'],
+  props: ['label'],
   data () {
     return {
       value: null,
       resources: [],
       addResource: false,
       newResource: {},
+      network: "pet"
      }
   },
   methods: {
-    updateResources() {
+    updateResources(nw = this.network) {
+      console.log('date with network', nw)
+      this.network = nw;
       this.$forceUpdate()
-      console.log('date with net', this.network)
       return listResources().then(l => {
         return listNetworks().then(ns => {
           const nwk = this.network;
@@ -123,6 +125,10 @@ export default {
               network: nw.key
             },
             ...l.filter(res => res.network === nw.key)]
+
+          if (!!this.value && this.value.network !== nw) {
+             this.value = this.resources[1];
+          }
           this.$emit('input', this.value)
         })
       })

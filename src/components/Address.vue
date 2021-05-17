@@ -66,7 +66,7 @@ export default {
 
 
           })
-      } else { this.err = "Invalid 0x Hex: " + sec }
+      } else { if (!!this.value.secret) this.err = "Invalid 0x Hex: " + sec }
     },
     saveNewAddress() {
       const add = this.value;

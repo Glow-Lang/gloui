@@ -2,10 +2,8 @@
   <q-select
     filled
     v-model="value"
-    @input="$emit('input', $event); $emit('select', $event);"
+    @input="emitThings($event)"
     :options="networks"
-    option-value="key"
-    option-label="description"
     emit-value
     map-options
     color="teal"
@@ -21,10 +19,21 @@
           <q-item-label v-html="scope.opt.key" />
         </q-item-section>
         <q-item-section>
-          <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+          <q-item-label caption>{{ scope.opt.description }}<sup v-if="scope.opt.test"> &nbsp;test</sup></q-item-label>
         </q-item-section>
       </q-item>
     </template>
+  <template v-slot:selected>
+    <q-item v-if="!!value">
+      <q-item-section avatar>
+        <q-item-label v-html="value.key" />
+      </q-item-section>
+      <q-item-section>
+        <q-item-label caption>{{ value.description }}<sup v-if="value.test"> &nbsp;test</sup></q-item-label>
+      </q-item-section>
+    </q-item>
+    &nbsp;
+  </template>
   </q-select>
 </template>
 
@@ -39,11 +48,18 @@ export default {
       return $glowdbPromise.then(() => {
         listNetworks().then(l => {
           this.networks = l
-          this.value = l[0].key
-          this.$emit('input', this.value)
+          this.value = l[l.length - 1];
+          this.$emit('input', "pet")
         })
       })
+    },
+    emitThings(ev) {
+      const emit = ev !== null ? ev.key : null
 
+      console.log('ement', ev)
+      this.$emit('select', emit)
+      this.$emit('input', emit)
+      return ev
     }
   },
   data () {

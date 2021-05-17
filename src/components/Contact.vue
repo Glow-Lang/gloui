@@ -2,12 +2,12 @@
 <div v-if="value">
     <div class="row items-center full-height justify-center full-width ">
     <div class="col" v-if="showDesc">
-    <q-card class="q-px-lg q-pb-lg block q-mx-md" >
-    <q-input v-model="name" label="Name"
-             v-on:input="inputContactEvent"/>
-    <q-input v-model="description" label="Description"
-             v-on:input="inputContactEvent"/>
- <q-item v-if="avatar">
+      <q-card class="q-px-lg q-pb-lg block q-mx-md" >
+        <q-input v-model="name" label="Name"
+                 v-on:input="inputContactEvent"/>
+        <q-input v-model="description" label="Description"
+                 v-on:input="inputContactEvent"/>
+        <q-item v-if="avatar">
         <q-item-section avatar>
           <q-avatar>
             <q-icon name="contact_mail"/>
@@ -18,7 +18,10 @@
           <q-item-label caption> Avatar: Right now random, soon to be choose'able.</q-item-label>
         </q-item-section>
       </q-item>
-      </q-card>
+    </q-card>
+    <div class="q-gutter-sm">
+      <q-checkbox v-model="allowOtherAddresses" label="Share other used or unused addresses?" />
+    </div>
     </div>
     <div class="col" v-if="!!contact.name && showAddresses">
       <q-card class="q-px-lg q-pb-lg q-pt-lg block q-mx-md ">
@@ -38,15 +41,12 @@
                                 @new="newAddress"
                                 :ownerID="allowOtherAddresses ? null : contact.id"
                                 />
-                <div class="q-gutter-sm">
-                  <q-checkbox v-model="allowOtherAddresses" label="Share other used or unused addresses?" />
-                </div>
 
                 <!-- {{ contact }} -->
 
           </q-card-section>
         </div>
-        <q-card-section>
+        <q-card-section v-if="showDesc">
           <div class="text-weight-light">Optional but recommended:  Addresses under this name
              </div>
         </q-card-section>
@@ -96,7 +96,10 @@ export default {
       this.addresses = asses.filter(isOwner).map(a => { a.address.selected = true; return a.address} )
       console.log("entites", asses, this.addresses, this.value)
       this.oldAddresses = this.addresses;
-      if (this.showAddresses && !!this.name) this.$refs.address.$forceUpdate()
+      if (this.showAddresses && !!this.name) {
+        const add = this.$refs.address
+        if (add) add.$forceUpdate()
+      }
     })
     this.name = this.value.name
     this.description = this.value.description

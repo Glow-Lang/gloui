@@ -10,7 +10,6 @@
   map-options
   :label="label"
   color="teal"
-  clearable
   options-selected-class="text-deep-orange"
   @filter="filterFN"
   ref="assSel"
@@ -123,7 +122,11 @@ export default {
       this.updateAssets().then(a => {
         this.filterFN('', fn => fn())
         if (!this.value) {
-          this.value = this.assets[1]
+          if (!!this.assets[1]) {
+            this.value = this.assets[1]
+          } else if (!!this.ownerID) {
+            this.value = this.assets[0]
+          }
           this.$emit('input', this.value)
         } else { console.log('Sane Asser', this.value) }
       })
