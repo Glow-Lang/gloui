@@ -59,6 +59,7 @@ export default {
       console.log('ement', ev)
       this.$emit('select', emit)
       this.$emit('input', emit)
+      if (ev.test) this.$emit('test', ev)
       return ev
     }
   },

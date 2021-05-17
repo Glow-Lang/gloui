@@ -397,7 +397,7 @@ EOF
                  {"key":"ced",
                   "description":"Cardano EVM Devnet","uri":"https://rpc-evm.portal.dev.cardano.org/",
                   "nativeCurrency":"CED",
-                  "exchangeCurreny" : "ADA",
+                  "exchangeCurrency" : "ADA",
                   "test": true},
                  // {"key":"eth","description":"Ethereum Mainnet","uri":"https://mainnet.infura.io/v3/${INFURA_API_KEY}",
                  //  "nativeCurrency":"ETH","test":false},
@@ -415,10 +415,13 @@ EOF
                   "test":true},
                  {"key":"ogor","description":"Optimistic Ethereum Testnet Goerli",
                   "uri":"https://www.ethercluster.com/goerli",
-                  "nativeCurrency":"ETH",
+                  "nativeCurrency":"GOR",
                   "exchangeCurrency":"ETC",
                   "test":true},
-                 {"key":"pet","description":"Private Ethereum Testnet","uri":"http://localhost:8545","nativeCurrency":"ETH","test":true}
+                 {"key":"pet","description":"Private Ethereum Testnet","uri":"http://localhost:8545",
+                  "nativeCurrency":"PET",
+                  "exchangeCurrency":"ETH",
+                  "test":true}
                  // {"key":"rin","description":"Ethereum Testnet Rinkeby","uri":"https://rinkeby.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true},
                  // {"key":"rop","description":"Ethereum Testnet Ropsten","uri":"https://ropsten.infura.io/v3/${INFURA_API_KEY}","nativeCurrency":"ETH","test":true}
                  ]
@@ -429,6 +432,13 @@ EOF
    return $glowdbPromise.then(db =>
      db.transaction(store).objectStore(store).count(query).then(n => n))
   },
+  findNetwork(id) {
+   if (typeof id === 'object') return id;
+   return $glowdbPromise.then(db => {
+     const trans = db.transaction('network').objectStore('network')
+     return trans.get(id);
+   })
+ },
   addResourceType: addResourceType,
   listResourceTypes: listResourceTypes,
   saveAddress: saveAddress,

@@ -8,7 +8,9 @@
    <div class="col">
       <q-input v-model="value.name" label="Name (unique, used as the key)"
                v-on:input="inputResourceEvent"/>
-      <q-input v-model="value.description" label="Description"
+      <q-input v-model="value.description" label="Optional: Description"
+               v-on:input="inputResourceEvent"/>
+      <q-input v-model="value.exchangeCurrency" label="Optional: The crypoCurrency to calculate exchange rates"
                v-on:input="inputResourceEvent"/>
       <!-- <network :value="network" @input="network = $event" /> -->
     </div>
@@ -98,7 +100,8 @@ export default {
         network: v.network,
         type: !!v.type ? v.type.name : null,
         name: v.name,
-        description: v.description
+        description: v.description,
+        exchangeCurrency: v.exchangeCurrency
       }
       if (v.type) {
         Object.entries(v.type.construct).map(([k, _]) => {

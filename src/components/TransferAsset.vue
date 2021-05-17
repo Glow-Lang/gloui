@@ -6,7 +6,7 @@
   </div>
   <div class="row">
     <div class="col-6">
-      <h5> From: </h5>
+      <div class="text-h5"> From: </div>
       <contact-select
         v-model="from"
         ref="fromSelect"
@@ -16,7 +16,7 @@
 
       </div>
       <div class="col-6">
-      <h5> To: </h5>
+        <div class="text-h5"> To: </div>
       <contact-select
         v-model="to"
         ref="toSelect"
@@ -27,8 +27,9 @@
   <div
        v-if="from" style="height:100%">
     <div
-         v-for="(ass, key) in assets"
-      v-bind:key="ass.id">
+      v-for="(ass, key) in assets"
+      v-bind:key="ass.id"
+      >
       <div class="row rounded-borders q-ma-sm">
         <!-- {{ ass }} {{ key }} -->
         <div class="col-6" style="height:100%" >
@@ -65,6 +66,7 @@
                    :value="ass.network"
                    @input="assetNetworkInput(key, $event)"
                    @select="assetNetworkSelect(key, $event)"
+                   @test="assetTest(key)"
                    />
 
       </div>
@@ -82,7 +84,10 @@
       </div>
 
       <div class="col q-mx-sm">
-        <q-input outlined filled v-model="ass.amount" label="Send this Amount" @blur="verifyTransfer(key)" />
+        <q-input outlined filled class="text-h5" v-model="ass.amount" label="Send this Amount"
+                 @blur="verifyTransfer(key)"
+                 @input="verifyTransfer(key, false)"/>
+        <div v-if="ass.exchange"> =  {{ ass.exchange.target }} {{ Object.values(ass.exchange.rates)[0] * ass.amount }} </div>
       </div>
 
 
@@ -105,9 +110,10 @@
              label="Perform Transaction"
              @click="performTransaction()"/>
     </div>
-  </div>
+    </div>
+    <hr/>
     <div class="q-pa-md q-gutter-sm">
-      {{ assets }}
+      <!-- {{ assets }} -->
       <!-- {{ transaction }} -->
 <!-- persistent -->
     <q-dialog v-model="showProc" >
@@ -262,7 +268,7 @@ import AssetSelect from 'components/AssetSelect.vue'
 import Network from 'components/Network.vue'
 import axios from 'axios'
 
-import  { findContact } from 'gambit-loader!../../public/glowdb.scm'
+import  { findContact, findNetwork } from 'gambit-loader!../../public/glowdb.scm'
 
 const coinKey = "bbe3ecfc186356e177696808b423aff6"
 
@@ -280,6 +286,10 @@ export default {
   methods: {
     cancelResource(key) {
       this.assets[key].resource = null
+    },
+    assetTest(key) {
+      this.assets[key].test = true
+      this.$forceUpdate()
     },
     assetNetworkInput(key, nw) {
       const ass = this.assets[key]
@@ -321,7 +331,7 @@ export default {
             addressSelect.balance = true;
           })
           .catch(e => {
-            addressSelect.balance = false
+            addressSelect.balance = 0
             this.err = e
           })
       } else {
@@ -335,11 +345,11 @@ export default {
     },
     assetResourceSelect(key, res, selectedR = false) {
       const ass = this.assets[key]
-      console.log("resource selected", key, res)
-      if (!!ass.selectedNetwork || selectedR) {
-        this.assetAccountBalance(key, ass, 'from')
-        this.assetAccountBalance(key, ass, 'to')
-      }
+       console.log("resource selected", key, res)
+       if (!!ass.selectedNetwork || selectedR) {
+         this.assetAccountBalance(key, ass, 'from')
+         this.assetAccountBalance(key, ass, 'to')
+       }
     },
     popupAddAsset(e, key, where) {
       console.log("popupAddAsset", e, key, where)
@@ -447,19 +457,37 @@ export default {
       console.log('Assets:', this.assets, this.validTransfer())
       this.$forceUpdate()
     },
-    verifyTransfer(key) {
+    verifyTransfer(key, checkBalance = true) {
+      this.err = null
       const xfer = this.assets[key]
       const fromBalance = !!xfer.from.balance ? xfer.from.balance.balance : false
+      const toBalance = !!xfer.to.balance ? xfer.to.balance.balance : false
       const amount = xfer.amount
 
       if (!fromBalance) {
         return this.assetAccountBalance(key, xfer, 'from').then(() => this.verifyTransfer(key))
       }
+      // if (!toBalance) {
+      //    return this.assetAccountBalance(key, xfer, 'to').then(() => this.verifyTransfer(key))
+      //  }
 
-      if (amount >= fromBalance) {
-        this.err = "WARNING: account " +xfer.from.owner.name + ' (' + xfer.from.address.number +') may not have enough to send ' + amount;
+      if (amount >= fromBalance ) {
+        this.err = "WARNING: account " +xfer.from.owner.name + ' (' + xfer.from.address.number +') may not have enough to send ' + amount + ' "' + xfer.resource.name + '"' + "s on " + '"' + xfer.network + '"';
         console.warn("amount", amount > fromBalance, fromBalance)
       }
+      if (xfer.amount > 0) {
+        findNetwork(xfer.network).then(nw => {
+          // console.log("Found Network:", nw)
+          const exCurr = xfer.resource.exchangeCurrency || nw.exchangeCurrency;
+
+          coinLayer("/live?target=USD&symbols=" + exCurr).then(d => {
+            xfer.exchange = d.data
+            console.log('exhachge', d, 'xfewr', xfer)
+            this.$forceUpdate()
+
+          })
+        })
+      } else xfer.exchange = null;
 
 
       console.log("sending", xfer.amount, 'from', xfer.from, 'with balance', fromBalance)

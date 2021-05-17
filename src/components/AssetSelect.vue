@@ -65,7 +65,7 @@
           <q-tooltip :offset="[0, 8]">Asking network for Balance</q-tooltip>
         </div>
 
-        <div class="text-h5 secondary" v-else-if="balance">
+        <div class="secondary" v-else-if="balance">
           Balance: {{ value.balance.resource.name }} {{ value.balance.balance }}
         </div>
 
