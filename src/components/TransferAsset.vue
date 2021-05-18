@@ -139,7 +139,7 @@
         <q-page-container>
           <q-page padding>
             <h5 v-if="transaction.state !== 'finished'">
-              Transfering from {{ transaction.remaining }} assets.</h5>
+              Transfering from {{ transaction.remaining }} assets...</h5>
             <q-list v-for="xfer in transaction.transfers" :key="xfer.id">
 
               <q-item v-if="!!xfer.state">
@@ -496,9 +496,11 @@ export default {
 
     },
     performTransaction() {
-      this.err = false;
+      this.err = false
+      this.transaction = {}
 
       this.showProc = true
+      this.$forceUpdate()
       const trans = { id: randomUUID(), assets: this.assets.slice() }
 
       console.warn('Here is the transaction:', trans)
