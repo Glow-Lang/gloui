@@ -1,10 +1,18 @@
 <template>
   <q-page class="flex flex-center">
+    <div class="q-pa-md q-gutter-sm" style="width:100%">
+      <q-breadcrumbs>
+        <q-breadcrumbs-el icon="home" to="/" />
+        <q-breadcrumbs-el icon="perm_identity" label="Contacts" />
+      </q-breadcrumbs>
+    </div>
     <div class="q-pa-md" style="max-width: 550px">
       <q-list bordered>
         <q-btn no-caps unelevated
                icon="person_add"
-               label="Create new contact" />
+               label="Create new contact"
+               @click="$router.push('/CreateContact')" />
+
         <q-expansion-item
             v-for="contact in contacts"
             v-bind:key="contact.cid"
