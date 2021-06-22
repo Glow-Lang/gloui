@@ -95,12 +95,11 @@ module.exports = function (/* ctx */) {
       port: 8080,
       open: true, // opens browser window automatically
       proxy: {
-    // proxy all requests starting with /api to jsonplaceholder
-        '/cloud': {
-          target: 'http://localhost:6741',
+        '/contacts': {
+          target: 'http://localhost:6742',
           changeOrigin: true,
           pathRewrite: {
-            '^/cloud': ''
+            '^/contacts': ''
           }
         }
       }
