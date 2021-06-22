@@ -3,9 +3,16 @@
   <div class="text-h3" style="width: 100%; text-align:center;">
     Welcome to Glow!
   </div>
-  <ul class="text-h4">
-    <li><router-link to="/Contacts">Contacts</router-link></li>
-  </ul>
+  <q-list padding class="text-h4">
+    <q-item>
+      <q-icon name="people_alt" />&ensp;
+      <router-link to="/Contacts">Contacts</router-link>
+    </q-item>
+    <q-item>
+      <q-icon name="link" />&ensp;
+      <router-link to="/Networks">Networks</router-link>
+    </q-item>
+  </q-list>
 </q-page>
 
 </template>
