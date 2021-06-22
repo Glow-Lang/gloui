@@ -1,4 +1,3 @@
-import REPL from 'pages/REPL.vue';
 const routes = [
   {
     path: '/',

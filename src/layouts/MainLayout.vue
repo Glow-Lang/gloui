@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title>
-          GloUI: Decentralized Applications across Blockchains
+          Glow: Decentralized Applications across Blockchains
         </q-toolbar-title>
 
-        <div>Gloui: 0.4.0 </div>
+        <div>GloUI: 0.5.0 </div>
       </q-toolbar>
     </q-header>
 
@@ -42,30 +42,12 @@
 
     <q-page-container>
       <router-view />
-
-      <div style="display: none">
-        <gerbil-repl />
-      </div>
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
-import 'gambit-loader!../../public/foo.scm'
 import EssentialLink from 'components/EssentialLink.vue'
-import GerbilRepl from 'components/GerbilREPL.vue'
-
-import { openDB, deleteDB, wrap, unwrap } from 'idb';
-
-import 'gambit-loader!../../public/bar.scm'
-import  { listNetworks, addNetworks }  from 'gambit-loader!../../public/glowdb.scm'
-
-
-
-globalThis.openDB = openDB;
-globalThis.deleteDB = deleteDB;
-
-globalThis.listNetworks = listNetworks;
 
 const linksData = [
   {
@@ -90,43 +72,12 @@ const linksData = [
 
 export default {
   name: 'MainLayout',
-  components: {
-    EssentialLink,
-    GerbilRepl
-  },
-  created: function () {
-    $glowdbPromise.then(() => {
-      const nws = addNetworks()
-      console.log("Added networks", nws)
-      Promise.all(nws).then(() => {
-        listNetworks().then(l => {
-          l.sort((a,b) =>  {
-            if (!b) { return true }
-            else
-            if (a.test === b.test) {
-              return a.key < b.key
-            } else {
-              return (!a.test)
-            }
-          })
-
-          console.log("Listed Networks", l)
-          this.networks = l
-
-        })
-      })
-    })
-  },
+  components: { EssentialLink },
+  created: function () {},
   data () {
     return {
       leftDrawerOpen: false,
       essentialLinks: linksData,
-      networks: [],
-      network: "pet",
-      resource: null,
-      contact: null,
-      assetContact: null,
-      asset: null
     }
   }
 }
