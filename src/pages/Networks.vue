@@ -1,4 +1,5 @@
 <template>
+  <!-- List known networks. -->
   <q-page class="flex flex-center">
     <div class="q-pa-md q-gutter-sm" style="width:100%">
       <q-breadcrumbs>
@@ -11,17 +12,14 @@
         <q-btn no-caps unelevated
                icon="add_link"
                label="Add new network"
-               @click="$router.push('/AddNetwork')" />
-
-        <q-expansion-item
+               :to="'/add-network'" />
+        <q-expansion-item default-closed
             v-for="network in networks"
-            v-bind:key="network.name"
+            :key="network.name"
+            :label="network.name"
             group="networks"
             icon="link"
-            header-class="text-primary"
-            default-closed
-            :label="network.name"
-        >
+            header-class="text-primary">
           <q-card>
             <q-card-section>{{ network.description }}</q-card-section>
             <q-card-section>{{ network.uri }}</q-card-section>
@@ -35,14 +33,14 @@
 <script>
 const axios = require("axios");
 export default {
-    async created() {
-        this.networks = await axios.get("/contacts/networks")
-                                   .then((response) => response.data);
-    },
     data() {
         return {
             networks: [],
         }
+    },
+    async created() {
+        this.networks = await axios.get("/contacts/networks")
+                                   .then((response) => response.data);
     }
 }
 </script>

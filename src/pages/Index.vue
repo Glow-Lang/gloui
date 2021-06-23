@@ -6,11 +6,11 @@
   <q-list padding class="text-h4">
     <q-item>
       <q-icon name="people_alt" />&ensp;
-      <router-link to="/Contacts">Contacts</router-link>
+      <router-link to="/contacts">Contacts</router-link>
     </q-item>
     <q-item>
       <q-icon name="link" />&ensp;
-      <router-link to="/Networks">Networks</router-link>
+      <router-link to="/networks">Networks</router-link>
     </q-item>
   </q-list>
 </q-page>
