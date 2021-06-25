@@ -13,19 +13,19 @@
                label="Add new address"
                icon="contact_mail" />
       </q-item-label>
-      <q-item v-for="identity in identities"
-              :key="identity.network + identity.address">
+      <q-item v-for="(identity, index) in identities"
+              :key="index">
         <q-item-section>
           <!-- TODO: "Add new network" pseudo-option -->
           <q-select emit-value filled map-options
-                    v-model="identity.network"
+                    v-model="identities[index].network"
                     :options="networks"
                     option-value="name"
                     option-label="name"
                     label="Network" />
         </q-item-section>
         <q-item-section>
-          <q-input v-model="identity.address"
+          <q-input v-model="identities[index].address"
                    label="Address"
                    autocorrect="off"
                    spellcheck="false" />
@@ -55,7 +55,7 @@ export default {
     },
     methods: {
         addAddress() {
-            this.identities.splice(0, 0, {"network": "", "address": ""});
+            this.identities.unshift({"network": "", "address": ""});
         },
         save() {
             if (this.cid) {
