@@ -7,7 +7,7 @@
         <q-breadcrumbs-el icon="link" label="Networks" />
       </q-breadcrumbs>
     </div>
-    <div class="q-pa-md" style="max-width: 550px">
+    <div class="q-pa-md">
       <q-list bordered>
         <q-btn no-caps unelevated
                icon="add_link"
@@ -38,9 +38,11 @@ export default {
             networks: [],
         }
     },
-    async created() {
-        this.networks = await axios.get("/contacts/networks")
-                                   .then((response) => response.data);
+    created() {
+        axios.get("/contacts/networks")
+             .then((response) => {
+                 this.networks = response.data;
+             });
     }
 }
 </script>

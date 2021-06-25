@@ -13,8 +13,7 @@
                label="Add new address"
                icon="contact_mail" />
       </q-item-label>
-      <q-item v-for="(identity, index) in identities"
-              :key="index">
+      <q-item v-for="(identity, index) in identities" :key="index">
         <q-item-section>
           <!-- TODO: "Add new network" pseudo-option -->
           <q-select emit-value filled map-options
@@ -59,16 +58,14 @@ export default {
         },
         save() {
             if (this.cid) {
-                console.log("Edit contact: ", this.cid, this.name);
                 axios.put("/contacts/contact/" + this.cid.toString(), {
                     name: this.name,
                     identities: this.identities,
                 }).then((response) => {
-                    console.log("Response to edit: ", response.data);
+                    console.log("Contact", this.cid, "updated.");
                     this.$router.back();
                 });
             } else {
-                console.log("Create new contact:", this.name);
                 axios.post("/contacts/contact", {
                     name: this.name,
                     identities: this.identities,
@@ -80,26 +77,26 @@ export default {
             false
         }
     },
-    async created() {
+    created() {
+        // Fetch contact & identities for editing.
         if (this.cid && !isNaN(parseInt(this.cid))) {
-            console.log("Fetching contact for editing", this.cid);
-            this.contact = await axios.get("/contacts/contact/" + this.cid)
-                                      .then((response) => response.data);
-            this.identities = this.contact.identities.map((x) => Object.assign({}, x));
-            if (!this.name && this.contact.name) {
-                this.name = this.contact.name;
-            } else if (this.name != this.contact.name) {
-                // FIXME: Signal an error to the user.
-                console.error("Oops! ", this.name, this.contact);
-            } else {
-                console.warn("Hmmm... ", this.contact);
-            }
+            axios.get("/contacts/contact/" + this.cid)
+                 .then((response) => {
+                     this.contact = response.data
+                     this.identities = this.contact.identities.map((x) => Object.assign({}, x));
+                     if (!this.name && this.contact.name) {
+                         this.name = this.contact.name;
+                     } else if (this.name != this.contact.name) {
+                         console.error("Name mismatch: ", this.name, this.contact);
+                     }
+                 });
         }
 
-        // Fetch shared networks list for Network selector.
-        this.networks = await axios.get("/contacts/networks")
-                                   .then((response) => response.data);
-        console.log("Networks!", this.networks);
+        // Fetch networks list.
+        axios.get("/contacts/networks")
+             .then((response) => {
+                 this.networks = response.data;
+             });
     }
 }
 </script>

@@ -7,7 +7,7 @@
         <q-breadcrumbs-el icon="perm_identity" label="Contacts" />
       </q-breadcrumbs>
     </div>
-    <div class="q-pa-md" style="max-width: 550px">
+    <div class="q-pa-md">
       <q-list bordered>
         <q-item-label>
           <q-btn no-caps unelevated
@@ -33,14 +33,16 @@
 <script>
 const axios = require("axios");
 export default {
-    async created() {
-        this.contacts = await axios.get("/contacts/contacts")
-                                   .then((response) => response.data);
-    },
     data() {
         return {
             contacts: [],
         }
+    },
+    created() {
+        axios.get("/contacts/contacts")
+             .then((response) => {
+                 this.contacts = response.data;
+             });
     }
 }
 </script>

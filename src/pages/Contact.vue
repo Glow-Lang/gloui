@@ -46,11 +46,13 @@ export default {
             contact: null,
         }
     },
-    async created() {
+    created() {
         if (this.cid && !isNaN(parseInt(this.cid))) {
             console.log("Fetching contact ", this.cid);
-            this.contact = await axios.get("/contacts/contact/" + this.cid)
-                                      .then((response) => response.data);
+            axios.get("/contacts/contact/" + this.cid)
+                 .then((response) => {
+                     this.contact = response.data;
+                 });
         }
     }
 }
