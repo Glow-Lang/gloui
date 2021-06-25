@@ -17,8 +17,18 @@
             <q-item-label caption>No addresses found.</q-item-label>
           </q-item>
           <q-item clickable
-                  v-for="identity in contact.identities"
-                  :key="identity.network + identity.address">
+                  :to="{
+                      name: 'start-transaction',
+                      params: {
+                          source: {
+                              cid: contact.cid,
+                              name: contact.name,
+                              network: identity.network,
+                              address: identity.address
+                          }
+                      }
+                  }"
+                  v-for="(identity, index) in contact.identities" :key="index">
             <q-item-section avatar><q-avatar icon="contact_mail" /></q-item-section>
             <q-item-section>{{ identity.network }}</q-item-section>
             <q-item-section>{{ identity.address }}</q-item-section>
