@@ -13,7 +13,9 @@
       </q-breadcrumbs>
     </div>
     <template v-if="source">
-      <h3>{{ source.name }} on {{ source.network }} at {{ source.address }}...</h3>
+      <h3 style="display: inline-flex; justify-content: center; flex-basis: 100%">
+        {{ source.name }} ({{ source.network }}) at {{ source.address }}...
+      </h3>
       <q-form>
         <q-select emit-value filled map-options
                   v-model="action"

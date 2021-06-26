@@ -58,7 +58,7 @@ export default {
     },
     created() {
         if (this.cid && !isNaN(parseInt(this.cid))) {
-            console.log("Fetching contact ", this.cid);
+            console.log("Fetching contact", this.cid);
             axios.get("/contacts/contact/" + this.cid)
                  .then((response) => {
                      this.contact = response.data;
