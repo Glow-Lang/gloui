@@ -1,18 +1,19 @@
 <template>
   <!-- Edit a contact and its associated identities. -->
   <q-form class="q-pa-md">
-    <q-input v-model="name"
-             label="Name"
-             autocorrect="off"
-             spellcheck="false" />
-    <br />
     <q-list>
-      <q-item-label>
+      <q-item>
+        <q-input v-model="name"
+                 label="Name"
+                 autocorrect="off"
+                 spellcheck="false" />
+      </q-item>
+      <q-item>
         <q-btn no-caps unelevated
                @click="addAddress()"
                label="Add new address"
                icon="contact_mail" />
-      </q-item-label>
+      </q-item>
       <q-item v-for="(identity, index) in identities" :key="index">
         <q-item-section>
           <!-- TODO: "Add new network" pseudo-option -->
@@ -30,12 +31,13 @@
                    spellcheck="false" />
         </q-item-section>
       </q-item>
+      <q-item>
+        <q-btn @click="save()"
+               label="Save"
+               type="submit"
+               color="primary" />
+      </q-item>
     </q-list>
-    <br />
-    <q-btn @click="save()"
-           label="Save"
-           type="submit"
-           color="primary"/>
   </q-form>
 </template>
 
@@ -62,7 +64,7 @@ export default {
                     name: this.name,
                     identities: this.identities,
                 }).then((response) => {
-                    console.log("Contact", this.cid, "updated.");
+                    console.log("Contact", this.cid, "updated");
                     this.$router.back();
                 });
             } else {
