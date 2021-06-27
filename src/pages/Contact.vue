@@ -10,10 +10,31 @@
     </div>
     <template v-if="contact">
       <div class="q-pa-md">
-        <h3>{{contact.name}}</h3>
+        <h3 @mouseenter="toggleDeleteVisibility" @mouseleave="toggleDeleteVisibility">
+          {{contact.name}}
+          <q-btn flat round class="delete invisible" color="red" icon="delete" @click="confirmDeleteContact" />
+        </h3>
+        <q-dialog v-model="confirm">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">Really delete contact {{ contact.name }}?</div>
+            </q-card-section>
+            <q-card-section v-if="contact.identities.length == 1">
+              This will also delete one associated identity.
+            </q-card-section>
+            <q-card-section v-else-if="contact.identities.length > 1">
+              This will also delete {{ contact.identities.length }} associated identities.
+            </q-card-section>
+            <q-card-actions align="right">
+              <q-btn flat label="Cancel" color="primary" v-close-popup />
+              <q-btn flat label="Delete" color="primary" v-close-popup @click="deleteContact" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
         <q-separator />
         <q-list>
-          <q-item v-if="!contact.identities.length">
+          <q-item v-if="contact.identities.length == 0">
             <q-item-label caption>No addresses found.</q-item-label>
           </q-item>
           <q-item clickable
@@ -54,7 +75,29 @@ export default {
     data() {
         return {
             contact: null,
+            confirm: false,
         }
+    },
+    methods: {
+        confirmDeleteContact() {
+            this.confirm = true;
+        },
+        deleteContact() {
+            if (this.confirm) {
+                console.log("Delete contact", this.cid);
+                axios.delete("/contacts/contact/" + this.cid)
+                     .then((response) => {
+                         console.log("Contact", this.cid, "deleted");
+                         this.$router.back();
+                     });
+            }
+        },
+        toggleDeleteVisibility(event) {
+            var elts = event.target.getElementsByClassName("delete");
+            for (var i = 0; i < elts.length; i++) {
+                elts.item(i).classList.toggle("invisible");
+            }
+        },
     },
     created() {
         if (this.cid && !isNaN(parseInt(this.cid))) {
