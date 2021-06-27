@@ -1,6 +1,8 @@
 <template>
   <!-- Edit a contact and its associated identities. -->
-  <q-form class="q-pa-md">
+  <q-form @submit="save"
+          @reset="reset"
+          class="q-pa-md">
     <q-list>
       <q-item>
         <q-input v-model="name"
@@ -14,7 +16,9 @@
                label="Add new address"
                icon="contact_mail" />
       </q-item>
-      <q-item v-for="(identity, index) in identities" :key="index">
+      <q-item v-for="(identity, index) in identities" :key="index"
+              @mouseenter="toggleDeleteVisibility"
+              @mouseleave="toggleDeleteVisibility">
         <q-item-section>
           <!-- TODO: "Add new network" pseudo-option -->
           <q-select emit-value filled map-options
@@ -30,11 +34,22 @@
                    autocorrect="off"
                    spellcheck="false" />
         </q-item-section>
+        <q-item-section avatar>
+          <q-btn flat round
+                 @click="deleteIdentity(index)"
+                 class="delete invisible"
+                 color="red"
+                 icon="delete" />
+        </q-item-section>
       </q-item>
       <q-item>
-        <q-btn @click="save()"
+        <q-btn type="submit"
                label="Save"
-               type="submit"
+               color="primary" />
+        <q-btn flat
+               class="q-ml-sm"
+               label="Reset"
+               type="reset"
                color="primary" />
       </q-item>
     </q-list>
@@ -77,7 +92,20 @@ export default {
                 });
             }
             false
-        }
+        },
+        reset() {
+            this.name = this.contact.name;
+            this.identities = this.contact.identities.map((x) => Object.assign({}, x));
+        },
+        deleteIdentity(index) {
+            this.identities.splice(index, 1);
+        },
+        toggleDeleteVisibility(event) {
+            var elts = event.target.getElementsByClassName("delete");
+            for (var i = 0; i < elts.length; i++) {
+                elts.item(i).classList.toggle("invisible");
+            }
+        },
     },
     created() {
         // Fetch contact & identities for editing.
@@ -85,12 +113,7 @@ export default {
             axios.get("/contacts/contact/" + this.cid)
                  .then((response) => {
                      this.contact = response.data
-                     this.identities = this.contact.identities.map((x) => Object.assign({}, x));
-                     if (!this.name && this.contact.name) {
-                         this.name = this.contact.name;
-                     } else if (this.name != this.contact.name) {
-                         console.error("Name mismatch: ", this.name, this.contact);
-                     }
+                     this.reset();
                  });
         }
 
