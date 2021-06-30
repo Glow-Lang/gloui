@@ -14,12 +14,12 @@
     </div>
     <template v-if="source">
       <h3 style="display: inline-flex; justify-content: center; flex-basis: 100%">
-        <q-template v-if="source.nickname">
+        <template v-if="source.nickname">
           {{ source.name }} ({{ source.nickname }})
-        </q-template>
-        <q-template v-else>
+        </template>
+        <template v-else>
           {{ source.name }} ({{ source.network }}) at {{ source.address }}
-        </q-template>
+        </template>
         ...
       </h3>
       <q-form>
@@ -30,7 +30,24 @@
                   option-label="label"
                   label="Action" />
         <q-list bordered>
+          <q-item clickable
+                  v-if="action == 'faucet'"
+                  :to="{
+                      name: 'run-transaction',
+                      params: {
+                          action: action,
+                          source: {
+                              cid: source.cid,
+                              name: source.name,
+                              network: source.network,
+                              address: source.address
+                          }
+                      }
+                  }">
+            <q-item-label>Fund me!</q-item-label>
+          </q-item>
           <q-expansion-item default-closed
+                            v-else
                             v-for="contact in contacts"
                             :key="contact.cid"
                             :label="contact.name"
@@ -83,6 +100,9 @@ export default {
         return {
             action: "transfer-to",
             actions: [{
+                name: "faucet",
+                label: "Faucet..."
+            }, {
                 name: "transfer-to",
                 label: "Transfer tokens to...",
             }, {
