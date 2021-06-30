@@ -8,6 +8,7 @@ const routes = [
             { path: 'contacts', name: 'contacts', component: () => import('pages/Contacts.vue') },
             { path: 'create-contact', name: 'create-contact', component: () => import('pages/CreateContact.vue') },
             { path: 'edit-contact/:cid', name: 'edit-contact', props: true, component: () => import('pages/EditContact.vue') },
+            { path: 'generate-identity', name: 'generate-identity', props: true, component: () => import('pages/GenerateIdentity.vue') },
             { path: 'networks', component: () => import('pages/Networks.vue') },
             { path: 'start-transaction', name: 'start-transaction', props: true, component: () => import('pages/StartTransaction.vue') },
             { path: 'run-transaction', name: 'run-transaction', props: true, component: () => import('pages/RunTransaction.vue') },

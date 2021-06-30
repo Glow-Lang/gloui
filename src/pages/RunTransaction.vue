@@ -29,7 +29,7 @@
           <pre>{{output}}</pre>
         </div>
         <div v-if="status == -1" style="color: red">Transaction timed out.</div>
-        <div v-if="status == 0" style="color: green">Transaction completed successfully.</div>
+        <div v-else-if="status == 0" style="color: green">Transaction completed successfully.</div>
         <div v-else-if="status" style="color: orangered">Exited with status {{ status }}.</div>
         <div v-else><q-linear-progress indeterminate color="warning" class="q-mt-md" /></div>
       </div>

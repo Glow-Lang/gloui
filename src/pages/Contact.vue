@@ -45,13 +45,15 @@
                               cid: contact.cid,
                               name: contact.name,
                               network: identity.network,
-                              address: identity.address
+                              address: identity.address,
+                              nickname: identity.nickname
                           }
                       }
                   }"
                   v-for="(identity, index) in contact.identities" :key="index">
+            <q-item-section avatar>{{ identity.nickname }}</q-item-section>
             <q-item-section avatar><q-avatar icon="contact_mail" /></q-item-section>
-            <q-item-section>{{ identity.network }}</q-item-section>
+            <q-item-section avatar>{{ identity.network }}</q-item-section>
             <q-item-section>{{ identity.address }}</q-item-section>
           </q-item>
           <q-item-label class="text-right">

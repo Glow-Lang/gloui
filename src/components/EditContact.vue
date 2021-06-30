@@ -6,33 +6,57 @@
     <q-list>
       <q-item>
         <q-input v-model="name"
+                 :rules="[(name) => name.length > 0 || 'Name must not be empty']"
                  label="Name"
                  autocorrect="off"
                  spellcheck="false" />
       </q-item>
       <q-item>
-        <q-btn no-caps unelevated
+        <q-btn flat no-caps
                @click="addAddress()"
-               label="Add new address"
+               label="Add an address"
+               icon="person_add" />
+      </q-item>
+      <q-item>
+        <q-btn flat no-caps
+               v-if="cid"
+               :to="{ name: 'generate-identity', params: { cid: cid, name: name } }"
+               label="Generate a new identity"
                icon="contact_mail" />
       </q-item>
       <q-item v-for="(identity, index) in identities" :key="index"
               @mouseenter="toggleDeleteVisibility"
               @mouseleave="toggleDeleteVisibility">
         <q-item-section>
-          <!-- TODO: "Add new network" pseudo-option -->
+          <q-item-section>
+            <q-input v-model="identities[index].nickname"
+                     label="Nickname"
+                     autocorrect="off"
+                     spellcheck="false" />
+          </q-item-section>
           <q-select emit-value filled map-options
                     v-model="identities[index].network"
                     :options="networks"
                     option-value="name"
                     option-label="name"
                     label="Network" />
-        </q-item-section>
-        <q-item-section>
           <q-input v-model="identities[index].address"
+                   :rules="[(addr) => addr.length > 0 || 'Address must not be empty']"
                    label="Address"
                    autocorrect="off"
-                   spellcheck="false" />
+                   spellcheck="false"
+                   style="width: 45ch" />
+          <q-input v-model="identities[index].public_key"
+                   label="Public Key"
+                   autocorrect="off"
+                   spellcheck="false"
+                   style="width: 45ch" />
+          <q-input readonly
+                   v-model="identities[index].secret_key_path"
+                   label="Secret Key Path"
+                   autocorrect="off"
+                   spellcheck="false"
+                   style="width: 45ch" />
         </q-item-section>
         <q-item-section avatar>
           <q-btn flat round

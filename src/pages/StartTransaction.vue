@@ -14,7 +14,13 @@
     </div>
     <template v-if="source">
       <h3 style="display: inline-flex; justify-content: center; flex-basis: 100%">
-        {{ source.name }} ({{ source.network }}) at {{ source.address }}...
+        <q-template v-if="source.nickname">
+          {{ source.name }} ({{ source.nickname }})
+        </q-template>
+        <q-template v-else>
+          {{ source.name }} ({{ source.network }}) at {{ source.address }}
+        </q-template>
+        ...
       </h3>
       <q-form>
         <q-select emit-value filled map-options
@@ -56,6 +62,7 @@
                               }
                           }
                       }">
+                <q-item-section avatar>{{ identity.nickname }}</q-item-section>
                 <q-item-section avatar><q-avatar icon="contact_mail" /></q-item-section>
                 <q-item-section>{{ identity.network }}</q-item-section>
                 <q-item-section>{{ identity.address }}</q-item-section>
