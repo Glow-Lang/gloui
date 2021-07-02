@@ -98,9 +98,6 @@ module.exports = function (/* ctx */) {
         '/contacts': {
           target: 'http://localhost:6742',
           changeOrigin: true,
-          pathRewrite: {
-            '^/contacts': ''
-          }
         }
       }
     },
