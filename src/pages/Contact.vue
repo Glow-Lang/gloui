@@ -11,7 +11,7 @@
     <template v-if="contact">
       <div class="q-pa-md">
         <h3 @mouseenter="toggleDeleteVisibility" @mouseleave="toggleDeleteVisibility">
-          {{contact.name}}
+          {{ contact.name || "&lt;anonymous>" }}
           <q-btn flat round class="delete invisible" color="red" icon="delete" @click="confirmDeleteContact" />
         </h3>
         <q-dialog v-model="confirm">

@@ -7,11 +7,11 @@
         <q-breadcrumbs-el icon="people_alt" to="/contacts" />
         <q-breadcrumbs-el v-if="source"
                           icon="perm_identity"
-                          :label="source.name"
+                          :label="source.name || source.nickname || '&lt;anonymous>'"
                           :to="{name: 'contact', params: {cid: source.cid}}" />
         <q-breadcrumbs-el v-if="dest"
                           icon="perm_identity"
-                          :label="dest.name"
+                          :label="dest.name || dest.nickname || '&lt;anonymous>'"
                           :to="{name: 'contact', params: {cid: dest.cid}}" />
         <q-breadcrumbs-el icon="play_arrow" label="Run transaction" />
       </q-breadcrumbs>
@@ -19,14 +19,14 @@
     <template v-if="source && action">
       <h3 style="display: inline-flex; justify-content: center; flex-basis: 100%">
         <template v-if="source && dest && tokens">
-          {{ source.name }} ({{ source.network }})
+          {{ source.name || source.nickname || "&lt;anonymous>" }} ({{ source.network }})
           <template v-if="action == 'transfer-to'">&rarr;</template>
           <template v-else-if="action == 'transfer-from'">&larr;</template>
           <template v-else>{{ action }}</template>
-          {{ dest.name }} ({{ dest.network }})
+          {{ dest.name || dest.nickname || '&lt;anonymous>' }} ({{ dest.network }})
         </template>
         <template v-if="action == 'faucet'">
-          Fund {{ source.name }} ({{ source.network }})
+          Fund {{ source.name || source.nickname || '&lt;anonymous>' }} ({{ source.network }})
         </template>
       </h3>
       <div v-if="txid && output">

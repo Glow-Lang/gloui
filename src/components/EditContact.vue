@@ -6,7 +6,6 @@
     <q-list>
       <q-item>
         <q-input v-model="name"
-                 :rules="[(name) => name.length > 0 || 'Name must not be empty']"
                  label="Name"
                  autocorrect="off"
                  spellcheck="false" />
@@ -41,7 +40,9 @@
                     option-label="name"
                     label="Network" />
           <q-input v-model="identities[index].address"
-                   :rules="[(addr) => addr.length > 0 || 'Address must not be empty']"
+                   :rules="[(addr) => addr.length == 42 &&
+                                      addr.substr(0, 2) == '0x' ||
+                                      '0x1234ABCD... (40 hex digits)']"
                    label="Address"
                    autocorrect="off"
                    spellcheck="false"

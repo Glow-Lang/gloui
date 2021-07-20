@@ -50,7 +50,7 @@
                             v-else
                             v-for="contact in contacts"
                             :key="contact.cid"
-                            :label="contact.name"
+                            :label="contact.name || '&lt;anonymous>'"
                             group="contacts"
                             icon="perm_identity">
             <q-list>
