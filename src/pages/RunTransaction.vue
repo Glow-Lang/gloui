@@ -62,6 +62,36 @@
           </q-list>
         </q-form>
       </div>
+      <div v-else-if="action == 'buy-sig' || action == 'sell-sig'">
+        <q-form @submit="buySig">
+          <q-list>
+            <q-item>
+              <q-input v-model="amount"
+                       label="Amount"
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-input v-model="digest"
+                       :rules="[(digest) => digest.length >= 40 &&
+                                            digest.substr(0, 2) == '0x' ||
+                                            '0x1234ABCD...']"
+                       label="Signature digest"
+                       autocorrect="off"
+                       spellcheck="false"
+                       style="width: 45ch" />
+            </q-item>
+            <q-item>
+              <q-btn type="submit"
+                     :label="action == 'buy-sig' ? 'Buy signature' : 'Sell signature'"
+                     color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
       <div v-else>Unsupported action: {{ action }}</div>
     </template>
   </q-page>
@@ -74,6 +104,7 @@ export default {
     data() {
         return {
             amount: null,
+            digest: null,
             token: null,
             tokens: [],
             networks: [],
@@ -97,7 +128,7 @@ export default {
              });
 
         // Turn on faucets right away, no need to wait for args.
-        if (this.action == 'faucet') {
+        if (this.action == "faucet") {
             this.faucet();
         }
     },
@@ -130,6 +161,24 @@ export default {
                 console.log("Transaction", this.txid, "started");
                 this.pollOutput();
             });
+        },
+        buySig() {
+            axios.post("/contacts/transaction", {
+                action: this.action,
+                args: {
+                    source: this.source,
+                    dest: this.dest,
+                    amount: this.amount,
+                    token: this.token,
+                    digest: this.digest,
+                }
+            }).then((response) => {
+                const txn = response.data;
+                this.txid = txn.txid;
+                console.log("Transaction", this.txid, "started");
+                this.pollOutput();
+            });
+            false
         },
         pollOutput() {
             const interval = setInterval(() => {

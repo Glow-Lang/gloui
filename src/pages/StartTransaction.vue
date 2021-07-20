@@ -68,12 +68,14 @@
                               source: {
                                   cid: source.cid,
                                   name: source.name,
+                                  nickname: source.nickname,
                                   network: source.network,
                                   address: source.address
                               },
                               dest: {
                                   cid: contact.cid,
                                   name: contact.name,
+                                  nickname: identity.nickname,
                                   network: identity.network,
                                   address: identity.address
                               }
@@ -108,6 +110,12 @@ export default {
             }, {
                 name: "transfer-from",
                 label: "Transfer tokens from...",
+            }, {
+                name: "buy-sig",
+                label: "Buy signature from...",
+            }, {
+                name: "sell-sig",
+                label: "Sell signature to...",
             }],
             contacts: [],
         }
