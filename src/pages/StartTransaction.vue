@@ -116,6 +116,12 @@ export default {
             }, {
                 name: "sell-sig",
                 label: "Sell signature to...",
+            }, {
+                name: "rps-A",
+                label: "Start a game of rock, paper, scissors with...",
+            }, {
+                name: "rps-B",
+                label: "Join a game of rock, paper, scissors with...",
             }],
             contacts: [],
         }

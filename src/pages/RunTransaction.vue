@@ -92,6 +92,38 @@
           </q-list>
         </q-form>
       </div>
+      <div v-else-if="action == 'rps-A' || action == 'rps-B'">
+        <q-form @submit="rps">
+          <q-list>
+            <q-item>
+              <q-input v-model="amount"
+                       label="Wager amount"
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-select emit-value filled map-options
+                        v-model="hand"
+                        :options="[{label: 'Rock', value: '0'},
+                                   {label: 'Paper', value: '1'},
+                                   {label: 'Scissors', value: '2'}]"
+                        label="Hand">
+                <template v-slot:prepend>
+                  <q-icon v-if="hand === '0'" name="fas fa-hand-rock" />
+                  <q-icon v-else-if="hand === '1'" name="fas fa-hand-paper" />
+                  <q-icon v-else-if="hand === '2'" name="fas fa-hand-scissors" />
+                </template>
+              </q-select>
+            </q-item>
+            <q-item>
+              <q-btn type="submit" label="Play!" color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
       <div v-else>Unsupported action: {{ action }}</div>
     </template>
   </q-page>
@@ -104,13 +136,14 @@ export default {
     data() {
         return {
             amount: null,
-            digest: null,
             token: null,
             tokens: [],
             networks: [],
             txid: null,
             output: null,
             status: null,
+            digest: null, // buy/sell sig
+            hand: "0", // rps: rock
         }
     },
     created() {
@@ -134,51 +167,58 @@ export default {
     },
     methods: {
         faucet() {
-            axios.post("/contacts/transaction", {
-                action: this.action,
-                args: {
-                    source: this.source,
-                }
-            }).then((response) => {
-                const txn = response.data;
-                this.txid = txn.txid;
-                console.log("Transaction", this.txid, "started");
-                this.pollOutput();
-            });
+            this.startTransaction({
+                source: this.source,
+            })
         },
         transfer() {
-            axios.post("/contacts/transaction", {
-                action: this.action,
-                args: {
-                    source: this.source,
-                    dest: this.dest,
-                    amount: this.amount,
-                    token: this.token,
-                }
-            }).then((response) => {
-                const txn = response.data;
-                this.txid = txn.txid;
-                console.log("Transaction", this.txid, "started");
-                this.pollOutput();
-            });
+            this.startTransaction({
+                source: this.source,
+                dest: this.dest,
+                amount: this.amount,
+                token: this.token,
+            })
         },
         buySig() {
-            axios.post("/contacts/transaction", {
-                action: this.action,
-                args: {
-                    source: this.source,
-                    dest: this.dest,
+            this.startTransaction({
+                source: this.source,
+                dest: this.dest,
+                amount: this.amount,
+                token: this.token,
+                digest: this.digest,
+            })
+        },
+        rps() {
+            if (this.action == "rps-A") {
+                this.startTransaction({
+                    a: this.source,
+                    b: this.dest,
                     amount: this.amount,
                     token: this.token,
-                    digest: this.digest,
-                }
-            }).then((response) => {
-                const txn = response.data;
-                this.txid = txn.txid;
-                console.log("Transaction", this.txid, "started");
-                this.pollOutput();
-            });
+                    hand: this.hand,
+                })
+            } else if (this.action == "rps-B") {
+                this.startTransaction({
+                    a: this.dest,
+                    b: this.source,
+                    amount: this.amount,
+                    token: this.token,
+                    hand: this.hand,
+                })
+            }
+        },
+        startTransaction(args) {
+            axios.post("/contacts/transaction", {
+                action: this.action,
+                args: args
+            }).then(this.transactionStarted);
             false
+        },
+        transactionStarted(response) {
+            const txn = response.data;
+            this.txid = txn.txid;
+            console.log("Transaction", this.txid, "started");
+            this.pollOutput();
         },
         pollOutput() {
             const interval = setInterval(() => {
