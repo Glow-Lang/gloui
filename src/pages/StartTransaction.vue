@@ -14,7 +14,13 @@
     </div>
     <template v-if="source">
       <h3 style="display: inline-flex; justify-content: center; flex-basis: 100%">
-        {{ source.name }} ({{ source.network }}) at {{ source.address }}...
+        <template v-if="source.nickname">
+          {{ source.name }} ({{ source.nickname }})
+        </template>
+        <template v-else>
+          {{ source.name }} ({{ source.network }}) at {{ source.address }}
+        </template>
+        ...
       </h3>
       <q-form>
         <q-select emit-value filled map-options
@@ -24,10 +30,27 @@
                   option-label="label"
                   label="Action" />
         <q-list bordered>
+          <q-item clickable
+                  v-if="action == 'faucet'"
+                  :to="{
+                      name: 'run-transaction',
+                      params: {
+                          action: action,
+                          source: {
+                              cid: source.cid,
+                              name: source.name,
+                              network: source.network,
+                              address: source.address
+                          }
+                      }
+                  }">
+            <q-item-label>Fund me!</q-item-label>
+          </q-item>
           <q-expansion-item default-closed
+                            v-else
                             v-for="contact in contacts"
                             :key="contact.cid"
-                            :label="contact.name"
+                            :label="contact.name || '&lt;anonymous>'"
                             group="contacts"
                             icon="perm_identity">
             <q-list>
@@ -56,6 +79,7 @@
                               }
                           }
                       }">
+                <q-item-section avatar>{{ identity.nickname }}</q-item-section>
                 <q-item-section avatar><q-avatar icon="contact_mail" /></q-item-section>
                 <q-item-section>{{ identity.network }}</q-item-section>
                 <q-item-section>{{ identity.address }}</q-item-section>
@@ -76,6 +100,9 @@ export default {
         return {
             action: "transfer-to",
             actions: [{
+                name: "faucet",
+                label: "Faucet..."
+            }, {
                 name: "transfer-to",
                 label: "Transfer tokens to...",
             }, {

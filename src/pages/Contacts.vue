@@ -22,7 +22,7 @@
         >
           <q-item-section avatar><q-avatar icon="perm_identity" /></q-item-section>
           <q-item-section>
-            <q-item-label>{{contact.name}}</q-item-label>
+            <q-item-label>{{ contact.name || "&lt;anonymous>" }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
