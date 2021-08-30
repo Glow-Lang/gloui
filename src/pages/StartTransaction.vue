@@ -122,6 +122,12 @@ export default {
             }, {
                 name: "rps-B",
                 label: "Join a game of rock, paper, scissors with...",
+            }, {
+                name: "swap-A",
+                label: "Start a swap with...",
+            }, {
+                name: "swap-B",
+                label: "Join a swap with...",
             }],
             contacts: [],
         }

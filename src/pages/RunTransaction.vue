@@ -124,6 +124,33 @@
           </q-list>
         </q-form>
       </div>
+      <div v-else-if="action == 'swap-A' || action == 'swap-B'">
+        <q-form @submit="swap">
+          <q-list>
+            <q-item>
+              <q-input v-model="t_amount"
+                       label="I'll swap..."
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="t_token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-input v-model="u_amount"
+                       label="For..."
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="u_token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-btn type="submit" label="Swap!" color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
       <div v-else>Unsupported action: {{ action }}</div>
     </template>
   </q-page>
@@ -144,6 +171,10 @@ export default {
             status: null,
             digest: null, // buy/sell sig
             hand: "0", // rps: rock
+            t_amount: null, // swap
+            t_token: null, // swap
+            u_amount: null, // swap
+            u_token: null, // swap
         }
     },
     created() {
@@ -156,6 +187,7 @@ export default {
                                       .native_token;
                  }
                  this.tokens = this.networks.map((network) => network.native_token);
+                 this.tokens.push("QASPET"); // XXX FIXME KILLME HACK HACK HACK
                  this.tokens = [...new Set(this.tokens)]; // de-duplicate
                  this.tokens.sort();
              });
@@ -204,6 +236,27 @@ export default {
                     amount: this.amount,
                     token: this.token,
                     hand: this.hand,
+                })
+            }
+        },
+        swap() {
+            if (this.action == "swap-A") {
+                this.startTransaction({
+                    a: this.source,
+                    b: this.dest,
+                    t_amount: this.t_amount,
+                    t_token: this.t_token,
+                    u_amount: this.u_amount,
+                    u_token: this.u_token,
+                })
+            } else if (this.action == "swap-B") {
+                this.startTransaction({
+                    a: this.dest,
+                    b: this.source,
+                    t_amount: this.t_amount,
+                    t_token: this.t_token,
+                    u_amount: this.u_amount,
+                    u_token: this.u_token,
                 })
             }
         },
