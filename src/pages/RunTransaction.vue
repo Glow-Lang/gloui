@@ -186,9 +186,10 @@ export default {
                                       .find((network) => network.name == this.source.network)
                                       .native_token;
                  }
-                 this.tokens = this.networks.map((network) => network.native_token);
-                 this.tokens.push("QASPET"); // XXX FIXME KILLME HACK HACK HACK
-                 this.tokens = [...new Set(this.tokens)]; // de-duplicate
+             });
+        axios.get("/contacts/assets")
+             .then((response) => {
+                 this.tokens = response.data;
                  this.tokens.sort();
              });
 
