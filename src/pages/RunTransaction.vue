@@ -62,6 +62,95 @@
           </q-list>
         </q-form>
       </div>
+      <div v-else-if="action == 'buy-sig' || action == 'sell-sig'">
+        <q-form @submit="buySig">
+          <q-list>
+            <q-item>
+              <q-input v-model="amount"
+                       label="Amount"
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-input v-model="digest"
+                       :rules="[(digest) => digest.length >= 40 &&
+                                            digest.substr(0, 2) == '0x' ||
+                                            '0x1234ABCD...']"
+                       label="Signature digest"
+                       autocorrect="off"
+                       spellcheck="false"
+                       style="width: 45ch" />
+            </q-item>
+            <q-item>
+              <q-btn type="submit"
+                     :label="action == 'buy-sig' ? 'Buy signature' : 'Sell signature'"
+                     color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
+      <div v-else-if="action == 'rps-A' || action == 'rps-B'">
+        <q-form @submit="rps">
+          <q-list>
+            <q-item>
+              <q-input v-model="amount"
+                       label="Wager amount"
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-select emit-value filled map-options
+                        v-model="hand"
+                        :options="[{label: 'Rock', value: '0'},
+                                   {label: 'Paper', value: '1'},
+                                   {label: 'Scissors', value: '2'}]"
+                        label="Hand">
+                <template v-slot:prepend>
+                  <q-icon v-if="hand === '0'" name="fas fa-hand-rock" />
+                  <q-icon v-else-if="hand === '1'" name="fas fa-hand-paper" />
+                  <q-icon v-else-if="hand === '2'" name="fas fa-hand-scissors" />
+                </template>
+              </q-select>
+            </q-item>
+            <q-item>
+              <q-btn type="submit" label="Play!" color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
+      <div v-else-if="action == 'swap-A' || action == 'swap-B'">
+        <q-form @submit="swap">
+          <q-list>
+            <q-item>
+              <q-input v-model="t_amount"
+                       label="I'll swap..."
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="t_token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-input v-model="u_amount"
+                       label="For..."
+                       autocorrect="off"
+                       spellcheck="false" />
+              <q-select v-model="u_token"
+                        :options="tokens"
+                        label="Token" />
+            </q-item>
+            <q-item>
+              <q-btn type="submit" label="Swap!" color="primary" />
+            </q-item>
+          </q-list>
+        </q-form>
+      </div>
       <div v-else>Unsupported action: {{ action }}</div>
     </template>
   </q-page>
@@ -80,6 +169,12 @@ export default {
             txid: null,
             output: null,
             status: null,
+            digest: null, // buy/sell sig
+            hand: "0", // rps: rock
+            t_amount: null, // swap
+            t_token: null, // swap
+            u_amount: null, // swap
+            u_token: null, // swap
         }
     },
     created() {
@@ -91,45 +186,93 @@ export default {
                                       .find((network) => network.name == this.source.network)
                                       .native_token;
                  }
-                 this.tokens = this.networks.map((network) => network.native_token);
-                 this.tokens = [...new Set(this.tokens)]; // de-duplicate
+             });
+        axios.get("/contacts/assets")
+             .then((response) => {
+                 this.tokens = response.data;
                  this.tokens.sort();
              });
 
         // Turn on faucets right away, no need to wait for args.
-        if (this.action == 'faucet') {
+        if (this.action == "faucet") {
             this.faucet();
         }
     },
     methods: {
         faucet() {
-            axios.post("/contacts/transaction", {
-                action: this.action,
-                args: {
-                    source: this.source,
-                }
-            }).then((response) => {
-                const txn = response.data;
-                this.txid = txn.txid;
-                console.log("Transaction", this.txid, "started");
-                this.pollOutput();
-            });
+            this.startTransaction({
+                source: this.source,
+            })
         },
         transfer() {
-            axios.post("/contacts/transaction", {
-                action: this.action,
-                args: {
-                    source: this.source,
-                    dest: this.dest,
+            this.startTransaction({
+                source: this.source,
+                dest: this.dest,
+                amount: this.amount,
+                token: this.token,
+            })
+        },
+        buySig() {
+            this.startTransaction({
+                source: this.source,
+                dest: this.dest,
+                amount: this.amount,
+                token: this.token,
+                digest: this.digest,
+            })
+        },
+        rps() {
+            if (this.action == "rps-A") {
+                this.startTransaction({
+                    a: this.source,
+                    b: this.dest,
                     amount: this.amount,
                     token: this.token,
-                }
-            }).then((response) => {
-                const txn = response.data;
-                this.txid = txn.txid;
-                console.log("Transaction", this.txid, "started");
-                this.pollOutput();
-            });
+                    hand: this.hand,
+                })
+            } else if (this.action == "rps-B") {
+                this.startTransaction({
+                    a: this.dest,
+                    b: this.source,
+                    amount: this.amount,
+                    token: this.token,
+                    hand: this.hand,
+                })
+            }
+        },
+        swap() {
+            if (this.action == "swap-A") {
+                this.startTransaction({
+                    a: this.source,
+                    b: this.dest,
+                    t_amount: this.t_amount,
+                    t_token: this.t_token,
+                    u_amount: this.u_amount,
+                    u_token: this.u_token,
+                })
+            } else if (this.action == "swap-B") {
+                this.startTransaction({
+                    a: this.dest,
+                    b: this.source,
+                    t_amount: this.t_amount,
+                    t_token: this.t_token,
+                    u_amount: this.u_amount,
+                    u_token: this.u_token,
+                })
+            }
+        },
+        startTransaction(args) {
+            axios.post("/contacts/transaction", {
+                action: this.action,
+                args: args
+            }).then(this.transactionStarted);
+            false
+        },
+        transactionStarted(response) {
+            const txn = response.data;
+            this.txid = txn.txid;
+            console.log("Transaction", this.txid, "started");
+            this.pollOutput();
         },
         pollOutput() {
             const interval = setInterval(() => {

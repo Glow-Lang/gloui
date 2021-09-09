@@ -68,12 +68,14 @@
                               source: {
                                   cid: source.cid,
                                   name: source.name,
+                                  nickname: source.nickname,
                                   network: source.network,
                                   address: source.address
                               },
                               dest: {
                                   cid: contact.cid,
                                   name: contact.name,
+                                  nickname: identity.nickname,
                                   network: identity.network,
                                   address: identity.address
                               }
@@ -108,6 +110,24 @@ export default {
             }, {
                 name: "transfer-from",
                 label: "Transfer tokens from...",
+            }, {
+                name: "buy-sig",
+                label: "Buy signature from...",
+            }, {
+                name: "sell-sig",
+                label: "Sell signature to...",
+            }, {
+                name: "rps-A",
+                label: "Start a game of rock, paper, scissors with...",
+            }, {
+                name: "rps-B",
+                label: "Join a game of rock, paper, scissors with...",
+            }, {
+                name: "swap-A",
+                label: "Start a swap with...",
+            }, {
+                name: "swap-B",
+                label: "Join a swap with...",
             }],
             contacts: [],
         }

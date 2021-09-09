@@ -53,8 +53,9 @@
                    spellcheck="false"
                    style="width: 45ch" />
           <q-input readonly
-                   v-model="identities[index].secret_key_path"
-                   label="Secret Key Path"
+                   v-model="identities[index].secret_key"
+                   type="password"
+                   label="Encrypted Secret Key"
                    autocorrect="off"
                    spellcheck="false"
                    style="width: 45ch" />
